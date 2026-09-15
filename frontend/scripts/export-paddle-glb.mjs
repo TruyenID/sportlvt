@@ -187,7 +187,7 @@ const BRAND_DEEP = "#1d2a63";
 const BRAND_PRIMARY = "#3d55d6";
 const BRAND_LIGHT = "#aab8ff";
 
-async function edgeTextureBuffer() {
+async function edgeTextureBuffer(accentColor = BRAND_PRIMARY) {
   const w = 1024;
   const h = 128;
   const svg = Buffer.from(`
@@ -204,7 +204,7 @@ async function edgeTextureBuffer() {
     const x = i * 45 - 45;
     return `<line x1="${x}" y1="0" x2="${x + h}" y2="${h}" stroke="rgba(255,255,255,0.1)" stroke-width="7"/>`;
   }).join("")}
-      <rect x="0" y="${h * 0.42}" width="100%" height="${h * 0.16}" fill="${BRAND_PRIMARY}" opacity="0.55"/>
+      <rect x="0" y="${h * 0.42}" width="100%" height="${h * 0.16}" fill="${accentColor}" opacity="0.55"/>
     </svg>`);
   return sharp(svg).png().toBuffer();
 }
@@ -216,41 +216,21 @@ async function edgeTextureBuffer() {
 // turbulence noise, a soft off-center light falloff (not a hard gloss
 // streak), and a subtle, low-contrast sweet-spot mark — closer to how a
 // real painted/composite surface reflects light unevenly.
-async function faceTextureBuffer({ w, h, mirrored = false, palette }) {
-  const cx = w * (mirrored ? 0.66 : 0.34);
-  const cy = h * 0.3;
-  const svg = Buffer.from(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
-      <defs>
-        <radialGradient id="light" cx="${cx}" cy="${cy}" r="${w * 0.95}" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="${palette.primary}" stop-opacity="1"/>
-          <stop offset="55%" stop-color="${palette.deep}" stop-opacity="1"/>
-          <stop offset="100%" stop-color="${palette.dark}" stop-opacity="1"/>
-        </radialGradient>
-        <filter id="grain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${mirrored ? 7 : 3}" result="noise"/>
-          <feColorMatrix in="noise" type="matrix"
-            values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0 0 0 0"/>
-        </filter>
-        <linearGradient id="vignette" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
-          <stop offset="78%" stop-color="#000000" stop-opacity="0"/>
-          <stop offset="100%" stop-color="#000000" stop-opacity="0.35"/>
-        </linearGradient>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#light)"/>
-      <rect width="100%" height="100%" filter="url(#grain)" opacity="0.05"/>
-      <circle cx="${w / 2}" cy="${h * 0.48}" r="${w * 0.3}" fill="none" stroke="#000000" stroke-width="3" opacity="0.14"/>
-      <circle cx="${w / 2}" cy="${h * 0.48}" r="${w * 0.3}" fill="none" stroke="${palette.light}" stroke-width="1" opacity="0.2"/>
-      <rect x="0" y="${h * 0.9}" width="100%" height="${h * 0.02}" fill="#000000" opacity="0.2"/>
-      <rect width="100%" height="100%" fill="url(#vignette)"/>
-    </svg>`);
-  return sharp(svg).png().toBuffer();
+// Crops the ACTUAL source photo (not a synthetic color) to the paddle
+// face's aspect ratio and uses it as the face texture, so the 3D model
+// literally shows the same picture as the reference image instead of an
+// approximated color blob. `fit: "cover"` centers/crops so the paddle
+// artwork fills the face with no letterboxing.
+async function facePhotoBuffer(imagePath, { w, h, mirrored = false }) {
+  let img = sharp(imagePath).resize(w, h, { fit: "cover", position: "centre" });
+  if (mirrored) img = img.flop();
+  return img.png().toBuffer();
 }
 
 async function buildOne({ name, image }) {
   const OUT = path.join(PUBLIC_DIR, "models", `${name}.glb`);
-  const palette = await extractDominantColor(path.join(PUBLIC_DIR, image));
+  const sourcePath = path.join(PUBLIC_DIR, image);
+  const palette = await extractDominantColor(sourcePath);
 
   const document = new Document();
   const buffer = document.createBuffer();
@@ -259,9 +239,9 @@ async function buildOne({ name, image }) {
   // 0..1 UV mapping covers the face with no stretching.
   const targetW = 1024;
   const targetH = Math.round(targetW * (PADDLE_HALF_H / PADDLE_HALF_W));
-  const frontPng = await faceTextureBuffer({ w: targetW, h: targetH, mirrored: false, palette });
-  const backPng = await faceTextureBuffer({ w: targetW, h: targetH, mirrored: true, palette });
-  const edgePng = await edgeTextureBuffer();
+  const frontPng = await facePhotoBuffer(sourcePath, { w: targetW, h: targetH, mirrored: false });
+  const backPng = await facePhotoBuffer(sourcePath, { w: targetW, h: targetH, mirrored: true });
+  const edgePng = await edgeTextureBuffer(palette.primary);
 
   const frontTex = document.createTexture("front").setImage(frontPng).setMimeType("image/png");
   const backTex = document.createTexture("backFace").setImage(backPng).setMimeType("image/png");
