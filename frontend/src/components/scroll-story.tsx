@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import Paddle3DModel from "./paddle-3d-model";
 
 export type StoryPanel = {
   icon: ReactNode;
@@ -115,59 +116,25 @@ export function ScrollStory({ panels }: { panels: StoryPanel[] }) {
             const boundary = d <= 0 ? i - 1 : i;
             const directionSign = ((boundary % 2) + 2) % 2 === 0 ? 1 : -1;
             const translateX = baseX - dClamped * 55 * directionSign;
-            // Use the clamped delta (not the raw/unclamped one) for rotation
-            // too. Scrolling fast through several panels used to keep growing
-            // the raw `d` without bound (e.g. 2, 3, 4 steps away), so an
-            // offscreen paddle's rotateY kept climbing to huge angles (450deg,
-            // 600deg...) and the browser had to animate through all of that
-            // the moment it came back into range — extra work that made the
-            // visible transition feel less smooth. Clamping to the same
-            // [-1, 1] range as translateX/scale keeps every paddle's angle
-            // bounded to a single flip's worth of rotation at all times.
-            const rotateY = dClamped * 150 * directionSign;
             const scale = 1 - Math.abs(dClamped) * 0.15;
-            // Compensate for the source images not sharing the same aspect
-            // ratio. The wrapper box below is a fixed size (same box for
-            // every paddle, needed for a consistent rotation pivot/translateX
-            // reference), so with object-contain a squarer/wider image (e.g.
-            // vuot3D-3.webp ~1206x1305, vuot3D-4.webp 500x500) ends up
-            // width-bound inside that box and renders shorter than a taller,
-            // narrower image like img-vuot.webp/vuot3D-2.webp (1024x1536),
-            // which are height-bound and fill the box's full height. Boosting
-            // the image's own scale (not the wrapper's, so the flip pivot is
-            // unaffected) brings all four paddles back to a matching visual
-            // size.
-            const paddleAspectBoost = [1, 1, 1.22, 1.32][i] ?? 1;
             const visible = Math.abs(d) <= 1;
+            // Real procedural Three.js model (see paddle-3d-model.tsx +
+            // public/models/paddle.glb) replaces the flat paddle photos — it
+            // does its own yaw/pitch/roll spin driven by `progress` (offset
+            // per paddle index/direction so each still reads as flipping the
+            // same way the old CSS rotateY did), so this wrapper only needs
+            // to handle the left/right fan-out slide, scale and crossfade.
             return (
-              // Fixed-size wrapper (same box for every paddle image) instead of
-              // sizing each <img> by its own natural aspect ratio ("w-auto").
-              // The 4 source images don't all share the same crop/aspect ratio
-              // (img-vuot.webp in particular is an older asset, framed
-              // differently from the vuot3D-* set), so letting width follow
-              // each image's own ratio gave every image a different rendered
-              // size/pivot point — the flip looked smooth between two
-              // similarly-framed images (vuot3D-2/3) but "off" whenever
-              // img-vuot.webp was one side of the transition. object-contain
-              // inside an identical box keeps size and rotation anchor
-              // consistent for every pair, regardless of source aspect ratio.
               <div
                 key={i}
                 className="absolute flex h-[80%] w-[min(70vw,480px)] items-center justify-center transition-all duration-700 ease-in-out"
                 style={{
                   willChange: "transform, opacity",
-                  backfaceVisibility: "hidden",
                   opacity: visible ? 1 : 0,
-                  transform: `translateX(${translateX}%) rotateY(${rotateY}deg) rotate(${Math.sin(progress * Math.PI * 2) * 4}deg) scale(${scale})`,
+                  transform: `translateX(${translateX}%) scale(${scale})`,
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={p.paddleImage ?? "/img-vuot.webp"}
-                  alt="Vợt pickleball"
-                  className="h-full w-full object-contain drop-shadow-2xl transition-transform duration-700 ease-in-out"
-                  style={{ transform: `scale(${paddleAspectBoost})` }}
-                />
+                <Paddle3DModel progress={progress + i * directionSign} />
               </div>
             );
           })}
