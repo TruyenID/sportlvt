@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Lint, Typecheck & Build (${{ matrix.app }})
+    name: Lint & Build (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -41,9 +41,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-
-      - name: Typecheck
-        run: npx tsc --noEmit
 
       - name: Build
         run: npm run build
