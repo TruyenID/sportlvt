@@ -10,12 +10,101 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
-const OUT = path.join(PUBLIC_DIR, "models", "paddle.glb");
 const THICKNESS = 0.34;
 // Paddle face half-width/half-height, shared by the shape outline and the
 // photo crop below so the two stay in sync (same aspect ratio).
 const PADDLE_HALF_W = 1.55;
 const PADDLE_HALF_H = 2.05;
+
+// The 4 source paddle photos shown in the scroll-story section. Each model
+// is baked with its OWN accent color, extracted directly from that photo's
+// pixels (not a hand-typed guess), so the 3D face matches the real artwork.
+const PADDLE_SOURCES = [
+  { name: "paddle-1", image: "img-vuot.webp" },
+  { name: "paddle-2", image: "vuot3D-2.webp" },
+  { name: "paddle-3", image: "vuot3D-3.webp" },
+  { name: "paddle-4", image: "vuot3D-4.webp" },
+];
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s;
+  const l = (max + min) / 2;
+  if (max === min) { h = s = 0; } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      default: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return [h, s, l];
+}
+
+function hslToRgb(h, s, l) {
+  if (s === 0) { const v = Math.round(l * 255); return [v, v, v]; }
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return [
+    Math.round(hue2rgb(p, q, h + 1 / 3) * 255),
+    Math.round(hue2rgb(p, q, h) * 255),
+    Math.round(hue2rgb(p, q, h - 1 / 3) * 255),
+  ];
+}
+
+function toHex([r, g, b]) {
+  return "#" + [r, g, b].map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Extracts the dominant *saturated* color from a paddle photo. Plain
+ * averaging pulls the result toward the near-black/near-white background
+ * that fills most of these product photos, so instead this buckets pixels
+ * by quantized color and picks the most common bucket among pixels that are
+ * actually colorful (decent saturation, mid lightness) — i.e. the paddle
+ * itself, not its background.
+ */
+async function extractDominantColor(imagePath) {
+  const { data } = await sharp(imagePath)
+    .resize(150, 150, { fit: "inside" })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const buckets = new Map();
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+    if (a < 128) continue;
+    const [, s, l] = rgbToHsl(r, g, b);
+    if (s < 0.25 || l < 0.15 || l > 0.85) continue;
+    const key = [Math.round(r / 16) * 16, Math.round(g / 16) * 16, Math.round(b / 16) * 16].join(",");
+    buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  let bestKey = null;
+  let bestCount = -1;
+  for (const [key, count] of buckets) {
+    if (count > bestCount) { bestCount = count; bestKey = key; }
+  }
+  if (!bestKey) return { dark: BRAND_DARK, deep: BRAND_DEEP, primary: BRAND_PRIMARY, light: BRAND_LIGHT };
+  const [r, g, b] = bestKey.split(",").map(Number);
+  const [h, s] = rgbToHsl(r, g, b);
+  return {
+    dark: toHex(hslToRgb(h, Math.min(1, s * 0.9), 0.12)),
+    deep: toHex(hslToRgb(h, Math.min(1, s * 0.95), 0.28)),
+    primary: toHex(hslToRgb(h, s, 0.5)),
+    light: toHex(hslToRgb(h, s * 0.6, 0.78)),
+  };
+}
 
 function buildPaddleShape() {
   const shape = new THREE.Shape();
@@ -127,16 +216,16 @@ async function edgeTextureBuffer() {
 // turbulence noise, a soft off-center light falloff (not a hard gloss
 // streak), and a subtle, low-contrast sweet-spot mark — closer to how a
 // real painted/composite surface reflects light unevenly.
-async function faceTextureBuffer({ w, h, mirrored = false }) {
+async function faceTextureBuffer({ w, h, mirrored = false, palette }) {
   const cx = w * (mirrored ? 0.66 : 0.34);
   const cy = h * 0.3;
   const svg = Buffer.from(`
     <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
       <defs>
         <radialGradient id="light" cx="${cx}" cy="${cy}" r="${w * 0.95}" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="${BRAND_PRIMARY}" stop-opacity="1"/>
-          <stop offset="55%" stop-color="${BRAND_DEEP}" stop-opacity="1"/>
-          <stop offset="100%" stop-color="${BRAND_DARK}" stop-opacity="1"/>
+          <stop offset="0%" stop-color="${palette.primary}" stop-opacity="1"/>
+          <stop offset="55%" stop-color="${palette.deep}" stop-opacity="1"/>
+          <stop offset="100%" stop-color="${palette.dark}" stop-opacity="1"/>
         </radialGradient>
         <filter id="grain">
           <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${mirrored ? 7 : 3}" result="noise"/>
@@ -152,14 +241,17 @@ async function faceTextureBuffer({ w, h, mirrored = false }) {
       <rect width="100%" height="100%" fill="url(#light)"/>
       <rect width="100%" height="100%" filter="url(#grain)" opacity="0.05"/>
       <circle cx="${w / 2}" cy="${h * 0.48}" r="${w * 0.3}" fill="none" stroke="#000000" stroke-width="3" opacity="0.14"/>
-      <circle cx="${w / 2}" cy="${h * 0.48}" r="${w * 0.3}" fill="none" stroke="${BRAND_LIGHT}" stroke-width="1" opacity="0.2"/>
+      <circle cx="${w / 2}" cy="${h * 0.48}" r="${w * 0.3}" fill="none" stroke="${palette.light}" stroke-width="1" opacity="0.2"/>
       <rect x="0" y="${h * 0.9}" width="100%" height="${h * 0.02}" fill="#000000" opacity="0.2"/>
       <rect width="100%" height="100%" fill="url(#vignette)"/>
     </svg>`);
   return sharp(svg).png().toBuffer();
 }
 
-async function main() {
+async function buildOne({ name, image }) {
+  const OUT = path.join(PUBLIC_DIR, "models", `${name}.glb`);
+  const palette = await extractDominantColor(path.join(PUBLIC_DIR, image));
+
   const document = new Document();
   const buffer = document.createBuffer();
 
@@ -167,8 +259,8 @@ async function main() {
   // 0..1 UV mapping covers the face with no stretching.
   const targetW = 1024;
   const targetH = Math.round(targetW * (PADDLE_HALF_H / PADDLE_HALF_W));
-  const frontPng = await faceTextureBuffer({ w: targetW, h: targetH, mirrored: false });
-  const backPng = await faceTextureBuffer({ w: targetW, h: targetH, mirrored: true });
+  const frontPng = await faceTextureBuffer({ w: targetW, h: targetH, mirrored: false, palette });
+  const backPng = await faceTextureBuffer({ w: targetW, h: targetH, mirrored: true, palette });
   const edgePng = await edgeTextureBuffer();
 
   const frontTex = document.createTexture("front").setImage(frontPng).setMimeType("image/png");
@@ -232,7 +324,13 @@ async function main() {
 
   const io = new NodeIO();
   await io.write(OUT, document);
-  console.log("Wrote", OUT);
+  console.log("Wrote", OUT, "palette", palette);
+}
+
+async function main() {
+  for (const source of PADDLE_SOURCES) {
+    await buildOne(source);
+  }
 }
 
 main().catch((err) => {

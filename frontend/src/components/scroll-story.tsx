@@ -134,7 +134,7 @@ export function ScrollStory({ panels }: { panels: StoryPanel[] }) {
                   transform: `translateX(${translateX}%) scale(${scale})`,
                 }}
               >
-                <Paddle3DModel progress={progress + i * directionSign} />
+                <Paddle3DModel progress={progress + i * directionSign} paddleIndex={i} />
               </div>
             );
           })}

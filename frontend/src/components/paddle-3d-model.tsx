@@ -5,14 +5,21 @@ import { useGLTF } from "@react-three/drei";
 import { Suspense, useRef } from "react";
 import type * as THREE from "three";
 
-// Baked .glb asset (front/back photo + procedural edge texture + handle),
-// generated offline by `frontend/scripts/export-paddle-glb.mjs` — the app
-// now loads a real 3D model file instead of building geometry at runtime.
-const MODEL_URL = "/models/paddle.glb";
+// Baked .glb assets (front/back photo + procedural edge texture + handle),
+// generated offline by `frontend/scripts/export-paddle-glb.mjs`. Each of the
+// 4 paddles gets its own file, baked with the accent color extracted
+// directly from that paddle's source photo (img-vuot.webp, vuot3D-2.webp,
+// vuot3D-3.webp, vuot3D-4.webp), so the 3D face matches the real artwork.
+const MODEL_URLS = [
+  "/models/paddle-1.glb",
+  "/models/paddle-2.glb",
+  "/models/paddle-3.glb",
+  "/models/paddle-4.glb",
+];
 
-function PaddleMesh({ progress }: { progress: number }) {
+function PaddleMesh({ progress, modelUrl }: { progress: number; modelUrl: string }) {
   const groupRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF(MODEL_URL);
+  const { scene } = useGLTF(modelUrl);
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -36,9 +43,17 @@ function PaddleMesh({ progress }: { progress: number }) {
   );
 }
 
-useGLTF.preload(MODEL_URL);
+for (const url of MODEL_URLS) useGLTF.preload(url);
 
-export default function Paddle3DModel({ progress }: { progress: number }) {
+export default function Paddle3DModel({
+  progress,
+  paddleIndex = 0,
+}: {
+  progress: number;
+  /** Which of the 4 baked paddle models to render (0-3). */
+  paddleIndex?: number;
+}) {
+  const modelUrl = MODEL_URLS[paddleIndex % MODEL_URLS.length];
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
       <Canvas
@@ -56,7 +71,7 @@ export default function Paddle3DModel({ progress }: { progress: number }) {
         />
         <directionalLight position={[-4, -2, -3]} intensity={0.2} color="#ffffff" />
         <Suspense fallback={null}>
-          <PaddleMesh progress={progress} />
+          <PaddleMesh progress={progress} modelUrl={modelUrl} />
         </Suspense>
       </Canvas>
     </div>
