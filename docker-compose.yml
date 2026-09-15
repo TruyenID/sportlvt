@@ -1,0 +1,30 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: levantruyen-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
+    networks:
+      - levantruyen
+
+  admin-web:
+    build:
+      context: ./admin-web
+      dockerfile: Dockerfile
+    container_name: levantruyen-admin-web
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./admin-web/.env.local
+    networks:
+      - levantruyen
+
+networks:
+  levantruyen:
+    driver: bridge
