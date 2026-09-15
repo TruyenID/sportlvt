@@ -47,3 +47,44 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  deploy:
+    name: Deploy to Vercel (${{ matrix.app }})
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: frontend
+            project_id_secret: VERCEL_PROJECT_ID_FRONTEND
+          - app: admin-web
+            project_id_secret: VERCEL_PROJECT_ID_ADMIN_WEB
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ matrix.app == 'frontend' && secrets.VERCEL_PROJECT_ID_FRONTEND || secrets.VERCEL_PROJECT_ID_ADMIN_WEB }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Pull Vercel environment info
+        run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build project artifacts
+        run: npx vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy to Vercel
+        run: npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
