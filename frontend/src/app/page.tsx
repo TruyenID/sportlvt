@@ -81,8 +81,13 @@ export default async function Home() {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="mx-auto w-full max-w-5xl px-4 pt-16 pb-10 text-center sm:pt-24 sm:pb-14">
-        <Reveal variant="scale">
-          <p className="text-sm font-medium text-muted-foreground">LevanTruyen Sport</p>
+        <Reveal variant="scale" delay={40}>
+          <span className="animate-badge-pulse-glow inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide">
+            <Sparkles className="size-3.5 shrink-0 text-primary" />
+            <span className="animate-gradient-flow bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-clip-text text-transparent">
+              Nhận in tên, số áo theo yêu cầu
+            </span>
+          </span>
         </Reveal>
         <Reveal variant="scale" delay={80}>
           <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
@@ -93,7 +98,8 @@ export default async function Home() {
         </Reveal>
         <Reveal variant="scale" delay={160}>
           <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground sm:text-xl">
-            Khám phá bộ sưu tập giày, áo và dụng cụ thể thao được chọn lọc kỹ càng.
+            Khám phá bộ sưu tập giày, áo và dụng cụ thể thao được chọn lọc kỹ càng —
+            kèm dịch vụ in tên, số theo yêu cầu.
           </p>
         </Reveal>
         <Reveal variant="scale" delay={240}>
@@ -244,16 +250,18 @@ export default async function Home() {
       )}
 
       {/* Endless shopping gallery (Apple "Endless entertainment" style) */}
-      <div className="mt-24 sm:mt-32">
-        <EntertainmentGallery
-          title="Mua sắm bất tận."
-          subtitle="Hàng trăm mẫu sản phẩm thể thao mới được cập nhật mỗi tuần."
-          products={bestSelling}
-        />
-      </div>
+      {bestSelling && bestSelling.length > 0 && (
+        <div className="mt-24 sm:mt-32">
+          <EntertainmentGallery
+            title="Mua sắm bất tận."
+            subtitle="Hàng trăm mẫu sản phẩm thể thao mới được cập nhật mỗi tuần."
+            products={bestSelling}
+          />
+        </div>
+      )}
 
       {/* Promo CTA */}
-      <Reveal variant="scale" className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+      <Reveal variant="slide" duration={1600} className="mx-auto mt-16 w-full max-w-6xl px-4 sm:mt-20">
         <section className="group relative overflow-hidden rounded-[2rem] bg-[oklch(0.16_0.03_235)] px-6 py-16 text-center text-background sm:px-10 sm:py-24">
           {/* Drifting dot grid */}
           <div
@@ -382,11 +390,13 @@ export default async function Home() {
               required
               placeholder="Nhập email của bạn"
               className="h-11 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
+              suppressHydrationWarning
             />
             <Magnetic strength={10} className="shrink-0">
               <button
                 type="submit"
                 className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-transform duration-300 active:scale-95"
+                suppressHydrationWarning
               >
                 Đăng ký
               </button>

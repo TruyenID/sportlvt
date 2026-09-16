@@ -213,6 +213,39 @@
   animation: grid-drift 10s linear infinite;
 }
 
+@keyframes gradient-flow {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-flow {
+  background-size: 200% auto;
+  animation: gradient-flow 3s ease-in-out infinite;
+}
+
+@keyframes badge-pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-primary) 45%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in oklch, var(--color-primary) 0%, transparent);
+  }
+}
+
+.animate-badge-pulse-glow {
+  animation: badge-pulse-glow 2s ease-out infinite;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Page / route transitions (native View Transitions API)                  */
 /* ---------------------------------------------------------------------- */

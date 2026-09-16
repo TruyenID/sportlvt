@@ -115,7 +115,22 @@ export async function getAdminProduct(id: number) {
 }
 
 export async function createProduct(data: Record<string, unknown>) {
-  const res = await supabase.from("products").insert(data).select(PRODUCT_SELECT).single();
+  const { variants, ...productData } = data as { variants?: Record<string, unknown>[] } & Record<
+    string,
+    unknown
+  >;
+  const created = unwrap<Product>(
+    await supabase.from("products").insert(productData).select(PRODUCT_SELECT).single()
+  );
+
+  if (variants?.length) {
+    const { error } = await supabase
+      .from("product_variants")
+      .insert(variants.map((v) => ({ ...v, product_id: created.id })));
+    if (error) throw new Error(error.message);
+  }
+
+  const res = await supabase.from("products").select(PRODUCT_SELECT).eq("id", created.id).single();
   return unwrap<Product>(res);
 }
 

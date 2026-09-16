@@ -102,7 +102,7 @@ export default function CategoriesPage() {
         parent_id: form.parent_id === "" ? null : Number(form.parent_id),
         description: form.description || null,
         image: form.image || null,
-        sort_order: form.sort_order === "" ? null : Number(form.sort_order),
+        sort_order: form.sort_order === "" ? 0 : Number(form.sort_order),
         is_active: form.is_active,
       };
       if (form.id) {

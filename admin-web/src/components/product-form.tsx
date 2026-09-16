@@ -46,6 +46,10 @@ export function ProductForm({ product }: { product?: Product }) {
   const [variants, setVariants] = useState<VariantForm[]>(
     product?.variants?.length ? product.variants : [emptyVariant()]
   );
+  const [hasVariants, setHasVariants] = useState<boolean>(() => {
+    if (!product?.variants?.length) return false;
+    return product.variants.length > 1 || product.variants.some((v) => v.size || v.color);
+  });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -62,6 +66,13 @@ export function ProductForm({ product }: { product?: Product }) {
     setVariants((prev) => prev.map((v, i) => (i === index ? { ...v, ...patch } : v)));
   }
 
+  function handleAddVariant() {
+    // Một khi đã bấm "Thêm biến thể", sản phẩm chuyển hẳn sang chế độ có
+    // biến thể (size/màu) và không còn quay lại chế độ "sản phẩm đơn" nữa.
+    setHasVariants(true);
+    setVariants((prev) => [...prev, emptyVariant()]);
+  }
+
   async function handleSaveVariant(index: number) {
     if (!product) return;
     const v = variants[index];
@@ -70,11 +81,11 @@ export function ProductForm({ product }: { product?: Product }) {
     try {
       const payload = {
         sku: v.sku,
-        size: v.size || null,
-        color: v.color || null,
-        color_hex: v.color_hex || null,
-        price: v.price ? Number(v.price) : null,
-        sale_price: v.sale_price ? Number(v.sale_price) : null,
+        size: hasVariants ? v.size || null : null,
+        color: hasVariants ? v.color || null : null,
+        color_hex: hasVariants ? v.color_hex || null : null,
+        price: hasVariants && v.price ? Number(v.price) : null,
+        sale_price: hasVariants && v.sale_price ? Number(v.sale_price) : null,
         stock: Number(v.stock) || 0,
         image: v.image || null,
         is_active: v.is_active ?? true,
@@ -160,7 +171,7 @@ export function ProductForm({ product }: { product?: Product }) {
         description: description || null,
         base_price: Number(basePrice),
         sale_price: salePrice ? Number(salePrice) : null,
-        weight: weight ? Number(weight) : null,
+        weight: weight ? Number(weight) : 0,
         thumbnail: thumbnail || null,
         is_active: isActive,
         is_featured: isFeatured,
@@ -171,11 +182,11 @@ export function ProductForm({ product }: { product?: Product }) {
       } else {
         payload.variants = variants.map((v) => ({
           sku: v.sku,
-          size: v.size || null,
-          color: v.color || null,
-          color_hex: v.color_hex || null,
-          price: v.price ? Number(v.price) : null,
-          sale_price: v.sale_price ? Number(v.sale_price) : null,
+          size: hasVariants ? v.size || null : null,
+          color: hasVariants ? v.color || null : null,
+          color_hex: hasVariants ? v.color_hex || null : null,
+          price: hasVariants && v.price ? Number(v.price) : null,
+          sale_price: hasVariants && v.sale_price ? Number(v.sale_price) : null,
           stock: Number(v.stock) || 0,
           image: v.image || null,
         }));
@@ -287,6 +298,30 @@ export function ProductForm({ product }: { product?: Product }) {
                 onChange={(e) => setWeight(e.target.value)}
               />
             </div>
+            {!hasVariants && (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="sku">SKU</Label>
+                  <Input
+                    id="sku"
+                    required
+                    value={variants[0]?.sku ?? ""}
+                    onChange={(e) => patchVariant(0, { sku: e.target.value })}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="stock">Tồn kho</Label>
+                  <Input
+                    id="stock"
+                    type="number"
+                    min={0}
+                    required
+                    value={variants[0]?.stock ?? 0}
+                    onChange={(e) => patchVariant(0, { stock: Number(e.target.value) })}
+                  />
+                </div>
+              </>
+            )}
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <Label htmlFor="short_description">Mô tả ngắn</Label>
               <Input
@@ -377,136 +412,144 @@ export function ProductForm({ product }: { product?: Product }) {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Layers className="size-4 text-primary" /> Biến thể (size / màu / giá / tồn kho)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {variantError && (
-            <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
-              <Info className="size-4 shrink-0" />
-              {variantError}
-            </div>
-          )}
-          {variants.map((v, i) => (
-            <div
-              key={v.id ?? `new-${i}`}
-              className="flex flex-col gap-2 rounded-lg border border-border bg-muted/20 p-3 sm:flex-row sm:items-center"
-            >
-              <span className="hidden size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary sm:flex">
-                {i + 1}
-              </span>
+      {!hasVariants && (
+        <Button type="button" variant="outline" className="w-fit gap-1.5" onClick={handleAddVariant}>
+          <Plus className="size-4" /> Thêm biến thể (sản phẩm có nhiều size/màu)
+        </Button>
+      )}
 
-              <label
-                htmlFor={`variant-image-${i}`}
-                className="group relative flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-primary/50"
-              >
-                {v.image ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={v.image}
-                      alt={`Ảnh biến thể ${i + 1}`}
-                      className="absolute inset-0 size-full object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-all group-hover:bg-black/50 group-hover:opacity-100">
-                      <UploadCloud className="size-4" />
-                    </div>
-                  </>
-                ) : uploadingVariantIndex === i ? (
-                  <span className="text-[10px]">...</span>
-                ) : (
-                  <ImagePlus className="size-4" />
-                )}
-                <input
-                  id={`variant-image-${i}`}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleVariantImageChange(i, e)}
-                  disabled={uploadingVariantIndex === i}
-                  className="sr-only"
-                />
-              </label>
-
-              <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                <Input
-                  placeholder="SKU"
-                  required
-                  value={v.sku}
-                  onChange={(e) => patchVariant(i, { sku: e.target.value })}
-                />
-                <Input
-                  placeholder="Size"
-                  value={v.size ?? ""}
-                  onChange={(e) => patchVariant(i, { size: e.target.value })}
-                />
-                <Input
-                  placeholder="Màu"
-                  value={v.color ?? ""}
-                  onChange={(e) => patchVariant(i, { color: e.target.value })}
-                />
-                <Input
-                  type="number"
-                  min={0}
-                  placeholder="Giá riêng (VND)"
-                  value={v.price ?? ""}
-                  onChange={(e) => patchVariant(i, { price: e.target.value ? Number(e.target.value) : null })}
-                />
-                <Input
-                  type="number"
-                  min={0}
-                  placeholder="Giá KM riêng (VND)"
-                  value={v.sale_price ?? ""}
-                  onChange={(e) =>
-                    patchVariant(i, { sale_price: e.target.value ? Number(e.target.value) : null })
-                  }
-                />
-                <Input
-                  type="number"
-                  min={0}
-                  placeholder="Tồn kho"
-                  required
-                  value={v.stock}
-                  onChange={(e) => patchVariant(i, { stock: Number(e.target.value) })}
-                />
+      {hasVariants && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Layers className="size-4 text-primary" />
+              Biến thể (size / màu / giá / tồn kho)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {variantError && (
+              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+                <Info className="size-4 shrink-0" />
+                {variantError}
               </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Mỗi biến thể có thể có size, màu, giá riêng và tồn kho riêng.
+            </p>
 
-              <div className="flex shrink-0 items-center gap-1 self-end sm:self-center">
-                {product && (
+            {variants.map((v, i) => (
+              <div
+                key={v.id ?? `new-${i}`}
+                className="flex flex-col gap-2 rounded-lg border border-border bg-muted/20 p-3 sm:flex-row sm:items-center"
+              >
+                <span className="hidden size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary sm:flex">
+                  {i + 1}
+                </span>
+
+                <label
+                  htmlFor={`variant-image-${i}`}
+                  className="group relative flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/40 text-muted-foreground transition-colors hover:border-primary/50"
+                >
+                  {v.image ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={v.image}
+                        alt={`Ảnh biến thể ${i + 1}`}
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition-all group-hover:bg-black/50 group-hover:opacity-100">
+                        <UploadCloud className="size-4" />
+                      </div>
+                    </>
+                  ) : uploadingVariantIndex === i ? (
+                    <span className="text-[10px]">...</span>
+                  ) : (
+                    <ImagePlus className="size-4" />
+                  )}
+                  <input
+                    id={`variant-image-${i}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleVariantImageChange(i, e)}
+                    disabled={uploadingVariantIndex === i}
+                    className="sr-only"
+                  />
+                </label>
+
+                <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                  <Input
+                    placeholder="SKU"
+                    required
+                    value={v.sku}
+                    onChange={(e) => patchVariant(i, { sku: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Size"
+                    value={v.size ?? ""}
+                    onChange={(e) => patchVariant(i, { size: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Màu"
+                    value={v.color ?? ""}
+                    onChange={(e) => patchVariant(i, { color: e.target.value })}
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="Giá riêng (VND)"
+                    value={v.price ?? ""}
+                    onChange={(e) => patchVariant(i, { price: e.target.value ? Number(e.target.value) : null })}
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="Giá KM riêng (VND)"
+                    value={v.sale_price ?? ""}
+                    onChange={(e) =>
+                      patchVariant(i, { sale_price: e.target.value ? Number(e.target.value) : null })
+                    }
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="Tồn kho"
+                    required
+                    value={v.stock}
+                    onChange={(e) => patchVariant(i, { stock: Number(e.target.value) })}
+                  />
+                </div>
+
+                <div className="flex shrink-0 items-center gap-1 self-end sm:self-center">
+                  {product && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={variantSavingIndex === i}
+                      onClick={() => handleSaveVariant(i)}
+                    >
+                      {variantSavingIndex === i ? "Đang lưu..." : "Lưu"}
+                    </Button>
+                  )}
                   <Button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={variantSavingIndex === i}
-                    onClick={() => handleSaveVariant(i)}
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={variants.length === 1 || variantSavingIndex === i}
+                    onClick={() => handleRemoveVariant(i)}
                   >
-                    {variantSavingIndex === i ? "Đang lưu..." : "Lưu"}
+                    <Trash2 className="size-4 text-destructive" />
                   </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  disabled={variants.length === 1 || variantSavingIndex === i}
-                  onClick={() => handleRemoveVariant(i)}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
+                </div>
               </div>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-fit gap-1.5"
-            onClick={() => setVariants((prev) => [...prev, emptyVariant()])}
-          >
-            <Plus className="size-4" /> Thêm biến thể
-          </Button>
-        </CardContent>
-      </Card>
+            ))}
+            <Button type="button" variant="outline" className="w-fit gap-1.5" onClick={handleAddVariant}>
+              <Plus className="size-4" /> Thêm biến thể
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="fixed inset-x-0 bottom-0 z-10 flex justify-end gap-2 border-t bg-card/95 px-6 py-3 backdrop-blur-sm">
         <Button type="button" variant="outline" onClick={() => router.push("/products")}>

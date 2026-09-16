@@ -60,7 +60,7 @@ export function SiteHeader() {
             width={96}
             height={96}
             className="size-24 shrink-0 rounded-md object-contain"
-            preload
+            priority
           />
         </Link>
 
@@ -81,6 +81,7 @@ export function SiteHeader() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tìm kiếm"
               className="h-10 w-full rounded-full border-none bg-muted/60 pl-9 pr-3 text-[15px] outline-none transition-colors focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40"
+              suppressHydrationWarning
             />
           </div>
         </form>
