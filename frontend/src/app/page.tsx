@@ -11,16 +11,37 @@ import {
   Undo2,
 } from "lucide-react";
 import { BannerSlider } from "@/components/banner-slider";
+import { EntertainmentGallery } from "@/components/entertainment-gallery";
+import { Magnetic } from "@/components/magnetic";
+import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/reveal";
-import { ScrollStory } from "@/components/scroll-story";
-import { Tilt3D } from "@/components/tilt-3d";
-import { getBrands, getCategories } from "@/lib/endpoints";
+import { getBrands, getCategories, getProducts } from "@/lib/endpoints";
 
 const PERKS = [
-  { icon: Truck, title: "Giao hàng toàn quốc", desc: "Nhanh chóng, đúng hẹn" },
-  { icon: ShieldCheck, title: "Hàng chính hãng 100%", desc: "Cam kết chất lượng" },
-  { icon: Undo2, title: "Đổi trả dễ dàng", desc: "Trong vòng 7 ngày" },
-  { icon: Headset, title: "Hỗ trợ 24/7", desc: "Luôn sẵn sàng giúp bạn" },
+  {
+    icon: Truck,
+    title: "Giao hàng toàn quốc",
+    desc: "Nhanh chóng, đúng hẹn",
+    color: "oklch(0.6 0.19 235)",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Hàng chính hãng 100%",
+    desc: "Cam kết chất lượng",
+    color: "oklch(0.65 0.18 150)",
+  },
+  {
+    icon: Undo2,
+    title: "Đổi trả dễ dàng",
+    desc: "Trong vòng 7 ngày",
+    color: "oklch(0.72 0.16 70)",
+  },
+  {
+    icon: Headset,
+    title: "Hỗ trợ 24/7",
+    desc: "Luôn sẵn sàng giúp bạn",
+    color: "oklch(0.62 0.22 300)",
+  },
 ];
 
 const TESTIMONIALS = [
@@ -45,225 +66,332 @@ const TESTIMONIALS = [
 ];
 
 export default async function Home() {
-  const [categories, brands] = await Promise.all([
+  const [categories, brands, featured, bestSelling] = await Promise.all([
     getCategories().catch(() => []),
     getBrands().catch(() => []),
+    getProducts({ featured: true, per_page: 8 })
+      .then((r) => r.data)
+      .catch(() => []),
+    getProducts({ sort: "best_selling", per_page: 10 })
+      .then((r) => r.data)
+      .catch(() => []),
   ]);
 
   return (
-    <div className="flex flex-col gap-14 pb-16 [perspective:1500px]">
-      {/* Banner slider */}
-      <div className="mx-auto w-full max-w-6xl px-4 pt-6">
-        <BannerSlider />
-      </div>
+    <div className="flex flex-col">
+      {/* Hero */}
+      <section className="mx-auto w-full max-w-5xl px-4 pt-16 pb-10 text-center sm:pt-24 sm:pb-14">
+        <Reveal variant="scale">
+          <p className="text-sm font-medium text-muted-foreground">LevanTruyen Sport</p>
+        </Reveal>
+        <Reveal variant="scale" delay={80}>
+          <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
+            Đồ thể thao chính hãng.
+            <br />
+            Cho mọi cuộc chơi.
+          </h1>
+        </Reveal>
+        <Reveal variant="scale" delay={160}>
+          <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground sm:text-xl">
+            Khám phá bộ sưu tập giày, áo và dụng cụ thể thao được chọn lọc kỹ càng.
+          </p>
+        </Reveal>
+        <Reveal variant="scale" delay={240}>
+          <div className="mt-7 flex items-center justify-center gap-6">
+            <Magnetic>
+              <Link
+                href="/products"
+                className="flex items-center gap-1.5 rounded-full bg-primary px-6 py-2.5 text-[15px] font-medium text-primary-foreground transition-transform duration-300 active:scale-95"
+              >
+                Mua sắm ngay
+              </Link>
+            </Magnetic>
+            <Magnetic strength={10}>
+              <Link
+                href="/products?featured=true"
+                className="flex items-center gap-1 text-[15px] font-medium text-primary transition-colors hover:opacity-70"
+              >
+                Sản phẩm nổi bật <ArrowRight className="size-4" />
+              </Link>
+            </Magnetic>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* Banner slider (pinned scroll-driven horizontal gallery) */}
+      <BannerSlider />
 
       {/* Perks */}
-      <Reveal className="mx-auto -mt-8 w-full max-w-6xl px-4">
-        <section>
-          <div className="grid gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-            {PERKS.map(({ icon: Icon, title, desc }) => (
-              <Tilt3D key={title} max={8} className="group flex items-center gap-3 rounded-xl p-2">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
-                  <Icon className="size-5" />
+      <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {PERKS.map(({ icon: Icon, title, desc, color }, i) => (
+            <Reveal key={title} variant="scale" delay={i * 100}>
+              <div
+                className="group relative flex h-full flex-col items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-6 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-xl"
+                style={{ "--perk-color": color } as React.CSSProperties}
+              >
+                {/* Glow background on hover */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background:
+                      "radial-gradient(120px circle at 50% 0%, color-mix(in oklch, var(--perk-color) 18%, transparent), transparent 70%)",
+                  }}
+                />
+                {/* Icon badge */}
+                <span
+                  className="relative flex size-14 items-center justify-center rounded-2xl transition-transform duration-500 ease-out group-hover:-translate-y-1 group-hover:rotate-6"
+                  style={{
+                    background: "color-mix(in oklch, var(--perk-color) 14%, transparent)",
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 scale-100 rounded-2xl opacity-40 transition-transform duration-700 ease-out group-hover:scale-150 group-hover:opacity-0"
+                    style={{
+                      background: "color-mix(in oklch, var(--perk-color) 30%, transparent)",
+                    }}
+                  />
+                  <Icon
+                    className="relative size-6 transition-transform duration-500 group-hover:scale-110"
+                    strokeWidth={1.75}
+                    style={{ color: "var(--perk-color)" }}
+                  />
                 </span>
-                <div>
-                  <p className="text-sm font-semibold">{title}</p>
-                  <p className="text-xs text-muted-foreground">{desc}</p>
-                </div>
-              </Tilt3D>
-            ))}
-          </div>
-        </section>
-      </Reveal>
+                <p className="relative text-[15px] font-semibold transition-colors duration-300">
+                  {title}
+                </p>
+                <p className="relative text-sm text-muted-foreground">{desc}</p>
+                {/* Bottom accent line */}
+                <span
+                  aria-hidden
+                  className="absolute inset-x-6 bottom-0 h-0.5 origin-center scale-x-0 rounded-full transition-transform duration-300 ease-out group-hover:scale-x-100"
+                  style={{ background: "var(--perk-color)" }}
+                />
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
 
       {/* Categories */}
       {categories && categories.length > 0 && (
-        <Reveal className="mx-auto w-full max-w-6xl px-4">
-          <section>
-            <h2 className="mb-4 text-xl font-semibold">Danh mục sản phẩm</h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {categories.map((c, i) => (
-                <Tilt3D key={c.id} max={12} style={{ transitionDelay: `${i * 30}ms` }}>
-                  <Link
-                    href={`/products?category=${c.slug}`}
-                    className="group relative flex flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-accent/40 p-5 text-center shadow-sm transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/10"
-                  >
-                    <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
-                      <Sparkles className="size-5" />
-                    </span>
-                    <span className="text-sm font-medium transition-colors group-hover:text-primary">
-                      {c.name}
-                    </span>
-                  </Link>
-                </Tilt3D>
-              ))}
-            </div>
-          </section>
-        </Reveal>
+        <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+          <Reveal>
+            <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
+              Danh mục sản phẩm
+            </h2>
+          </Reveal>
+          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {categories.map((c, i) => (
+              <Reveal key={c.id} variant="scale" delay={i * 60}>
+                <Link
+                  href={`/products?category=${c.slug}`}
+                  className="group relative flex aspect-square flex-col items-end overflow-hidden rounded-3xl bg-muted/60 p-4 transition-shadow duration-500 hover:shadow-xl"
+                >
+                  {c.image ? (
+                    <Image
+                      src={c.image}
+                      alt={c.name}
+                      fill
+                      unoptimized
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
+                  ) : null}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0"
+                  />
+                  <span className="relative z-10 text-[15px] font-medium text-white">
+                    {c.name}
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </section>
       )}
 
+      {/* Featured products */}
+      {featured && featured.length > 0 && (
+        <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+          <Reveal className="flex items-end justify-between gap-4">
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+              Sản phẩm nổi bật
+            </h2>
+            <Link
+              href="/products?featured=true"
+              className="hidden shrink-0 items-center gap-1 text-[15px] font-medium text-primary transition-colors hover:opacity-70 sm:flex"
+            >
+              Xem tất cả <ArrowRight className="size-4" />
+            </Link>
+          </Reveal>
+          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {featured.map((p, i) => (
+              <Reveal key={p.id} variant="scale" delay={i * 60}>
+                <ProductCard product={p} />
+              </Reveal>
+            ))}
+          </div>
+          <Link
+            href="/products?featured=true"
+            className="mt-6 flex items-center justify-center gap-1 text-[15px] font-medium text-primary transition-colors hover:opacity-70 sm:hidden"
+          >
+            Xem tất cả <ArrowRight className="size-4" />
+          </Link>
+        </section>
+      )}
+
+      {/* Endless shopping gallery (Apple "Endless entertainment" style) */}
+      <div className="mt-24 sm:mt-32">
+        <EntertainmentGallery
+          title="Mua sắm bất tận."
+          subtitle="Hàng trăm mẫu sản phẩm thể thao mới được cập nhật mỗi tuần."
+          products={bestSelling}
+        />
+      </div>
+
       {/* Promo CTA */}
-      <Reveal className="mx-auto w-full max-w-6xl px-4">
-        <section>
-          <Tilt3D max={6}>
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/70 px-6 py-10 text-primary-foreground shadow-lg transition-shadow duration-500 hover:shadow-2xl hover:shadow-primary/30 sm:px-10">
-              <div className="relative z-10 flex flex-col items-start gap-3 sm:max-w-xl">
-                <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                  Ưu đãi đặc biệt
-                </span>
-                <h2 className="text-2xl font-bold sm:text-3xl">
-                  Săn deal thể thao – Giảm đến 50%
-                </h2>
-                <p className="text-sm text-primary-foreground/90 sm:text-base">
-                  Hàng ngàn sản phẩm chính hãng đang chờ bạn khám phá. Mua sắm ngay hôm nay!
-                </p>
-                <Link
-                  href="/products"
-                  className="mt-2 flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-primary transition-transform duration-300 hover:scale-105 active:scale-95"
-                >
-                  Mua sắm ngay <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-10 -top-10 size-56 rounded-full bg-white/10 blur-2xl transition-transform duration-700 group-hover:scale-125"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -bottom-16 right-24 size-48 rounded-full bg-white/10 blur-2xl transition-transform duration-700 group-hover:scale-125"
-              />
-            </div>
-          </Tilt3D>
+      <Reveal variant="scale" className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+        <section className="group relative overflow-hidden rounded-[2rem] bg-[oklch(0.16_0.03_235)] px-6 py-16 text-center text-background sm:px-10 sm:py-24">
+          {/* Drifting dot grid */}
+          <div
+            aria-hidden
+            className="animate-grid-drift pointer-events-none absolute inset-0 opacity-[0.15]"
+            style={{
+              backgroundImage:
+                "radial-gradient(color-mix(in oklch, var(--color-primary) 80%, white) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+            }}
+          />
+          {/* Floating gradient blobs */}
+          <div
+            aria-hidden
+            className="animate-blob-a pointer-events-none absolute -left-24 -top-24 size-80 rounded-full bg-primary/40 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="animate-blob-b pointer-events-none absolute -bottom-32 -right-16 size-96 rounded-full bg-[oklch(0.65_0.2_200)]/30 blur-3xl"
+          />
+
+          <div className="relative">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-background/15 bg-background/5 px-3 py-1 text-xs font-medium uppercase tracking-wide text-background/70 backdrop-blur-sm">
+              <Sparkles className="size-3.5 text-primary" />
+              Dịch vụ in ấn
+            </span>
+            <h2 className="mt-4 text-balance bg-gradient-to-b from-background to-background/60 bg-clip-text text-3xl font-semibold tracking-tight text-transparent sm:text-5xl">
+              In tên, số áo theo yêu cầu
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-base text-background/70 sm:text-lg">
+              Cá nhân hóa áo đấu của bạn với dịch vụ in tên, số theo yêu cầu — sắc nét, bền màu, giao nhanh.
+            </p>
+            <Magnetic className="mt-7">
+              <Link
+                href="/products"
+                className="group/btn relative inline-flex items-center gap-1.5 overflow-hidden rounded-full bg-background px-6 py-2.5 text-[15px] font-medium text-foreground transition-transform duration-300 active:scale-95"
+              >
+                <span
+                  aria-hidden
+                  className="animate-shimmer-sweep pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/60 to-transparent opacity-0 group-hover:opacity-100"
+                />
+                <span className="relative">Đặt in ngay</span>
+                <ArrowRight className="relative size-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+              </Link>
+            </Magnetic>
+          </div>
         </section>
       </Reveal>
 
       {/* Brands */}
       {brands && brands.length > 0 && (
-        <Reveal className="mx-auto w-full max-w-6xl px-4">
-          <section>
-            <h2 className="mb-4 text-xl font-semibold">Thương hiệu nổi bật</h2>
-            <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-              {brands.map((b) => (
-                <Tilt3D key={b.id} max={14}>
-                  <Link
-                    href={`/products?brand=${b.slug}`}
-                    className="flex h-20 items-center justify-center rounded-xl border border-border bg-card p-3 grayscale transition-all duration-300 hover:grayscale-0 hover:shadow-md"
-                  >
-                    {b.logo ? (
-                      <Image
-                        src={b.logo}
-                        alt={b.name}
-                        width={100}
-                        height={48}
-                        unoptimized
-                        className="max-h-10 w-auto object-contain"
-                      />
-                    ) : (
-                      <span className="text-sm font-semibold">{b.name}</span>
-                    )}
-                  </Link>
-                </Tilt3D>
-              ))}
-            </div>
-          </section>
-        </Reveal>
-      )}
-
-      {/* Sticky storytelling section (scroll scrubbing + parallax + pin + mask reveal + 3D + kinetic text) */}
-      <section className="w-full">
-        <ScrollStory
-          panels={[
-            {
-              icon: <Truck className="size-9 text-white" />,
-              title: "Giao hàng nhanh chóng",
-              desc: "Đơn hàng của bạn được xử lý và vận chuyển tới tận tay chỉ trong vài ngày.",
-              image: "/banner-3.webp",
-              align: "start",
-              paddleImage: "/img-vuot.webp",
-            },
-            {
-              icon: <ShieldCheck className="size-9 text-white" />,
-              title: "Hàng chính hãng 100%",
-              desc: "Cam kết nguồn gốc rõ ràng, chất lượng chuẩn từ các thương hiệu lớn.",
-              image: "/banner-5.webp",
-              align: "end",
-              paddleImage: "/vuot3D-2.webp",
-            },
-            {
-              icon: <Undo2 className="size-9 text-white" />,
-              title: "Đổi trả trong 7 ngày",
-              desc: "Không hài lòng? Đổi trả nhanh gọn, không rắc rối.",
-              image: "/banner-6.webp",
-              align: "start",
-              paddleImage: "/vuot3D-3.webp",
-            },
-            {
-              icon: <Headset className="size-9 text-white" />,
-              title: "Hỗ trợ tận tâm 24/7",
-              desc: "Đội ngũ chăm sóc khách hàng luôn sẵn sàng giải đáp mọi thắc mắc.",
-              image: "/banner-8.webp",
-              align: "end",
-              paddleImage: "/vuot3D-4.webp",
-            },
-          ]}
-        />
-      </section>
-
-      {/* Testimonials */}
-      <Reveal className="mx-auto w-full max-w-6xl px-4">
-        <section>
-          <h2 className="mb-4 text-xl font-semibold">Khách hàng nói gì về chúng tôi</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {TESTIMONIALS.map((t, i) => (
-              <Reveal key={t.name} delay={i * 100}>
-                <Tilt3D max={8}>
-                  <div className="flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow duration-300 hover:shadow-lg">
-                    <Quote className="size-6 text-primary/40" />
-                    <p className="flex-1 text-sm text-muted-foreground">{t.content}</p>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">{t.role}</p>
-                      </div>
-                      <div className="flex gap-0.5 text-amber-500">
-                        {Array.from({ length: 5 }).map((_, j) => (
-                          <Star key={j} className="size-3.5 fill-current" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </Tilt3D>
+        <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+          <Reveal>
+            <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
+              Thương hiệu nổi bật
+            </h2>
+          </Reveal>
+          <div className="mt-10 grid grid-cols-3 gap-6 sm:grid-cols-4 lg:grid-cols-6">
+            {brands.map((b, i) => (
+              <Reveal key={b.id} variant="scale" delay={i * 40}>
+                <Link
+                  href={`/products?brand=${b.slug}`}
+                  className="flex h-20 items-center justify-center rounded-2xl bg-muted/40 p-3 grayscale transition-all duration-500 hover:grayscale-0"
+                >
+                  {b.logo ? (
+                    <Image
+                      src={b.logo}
+                      alt={b.name}
+                      width={100}
+                      height={48}
+                      unoptimized
+                      className="max-h-10 w-auto object-contain"
+                    />
+                  ) : (
+                    <span className="text-sm font-semibold">{b.name}</span>
+                  )}
+                </Link>
               </Reveal>
             ))}
           </div>
         </section>
-      </Reveal>
+      )}
+
+      {/* Testimonials */}
+      <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+        <Reveal>
+          <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
+            Khách hàng nói gì
+          </h2>
+        </Reveal>
+        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+          {TESTIMONIALS.map((t, i) => (
+            <Reveal key={t.name} variant="scale" delay={i * 100}>
+              <div className="flex h-full flex-col gap-3 rounded-3xl bg-muted/50 p-6">
+                <Quote className="size-5 text-primary/50" />
+                <p className="flex-1 text-[15px] text-muted-foreground">{t.content}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                  <div className="flex gap-0.5 text-amber-500">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} className="size-3.5 fill-current" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
 
       {/* Newsletter */}
-      <Reveal className="mx-auto w-full max-w-6xl px-4">
-        <section>
-          <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-primary/40 bg-accent/30 px-6 py-10 text-center transition-colors duration-300 hover:bg-accent/50">
-            <h2 className="text-xl font-semibold sm:text-2xl">
-              Đăng ký nhận ưu đãi mới nhất
-            </h2>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Nhận thông báo sớm nhất về sản phẩm mới và các chương trình khuyến mãi hấp dẫn.
-            </p>
-            <form className="flex w-full max-w-md flex-col gap-2 sm:flex-row">
-              <input
-                type="email"
-                required
-                placeholder="Nhập email của bạn"
-                className="h-11 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
+      <Reveal variant="scale" className="mx-auto my-24 w-full max-w-6xl px-4 sm:my-32">
+        <section className="flex flex-col items-center gap-4 rounded-[2rem] bg-muted/50 px-6 py-16 text-center sm:py-20">
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Đăng ký nhận ưu đãi mới nhất
+          </h2>
+          <p className="max-w-md text-[15px] text-muted-foreground">
+            Nhận thông báo sớm nhất về sản phẩm mới và các chương trình khuyến mãi hấp dẫn.
+          </p>
+          <form className="mt-2 flex w-full max-w-md flex-col gap-2 sm:flex-row">
+            <input
+              type="email"
+              required
+              placeholder="Nhập email của bạn"
+              className="h-11 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+            <Magnetic strength={10} className="shrink-0">
               <button
                 type="submit"
-                className="h-11 shrink-0 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-transform duration-300 hover:scale-105 active:scale-95"
+                className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-transform duration-300 active:scale-95"
               >
                 Đăng ký
               </button>
-            </form>
-          </div>
+            </Magnetic>
+          </form>
         </section>
       </Reveal>
     </div>
