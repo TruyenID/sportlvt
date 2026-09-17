@@ -11,10 +11,11 @@ import {
   Undo2,
 } from "lucide-react";
 import { BannerSlider } from "@/components/banner-slider";
+import { CategoryShowcase } from "@/components/category-showcase";
 import { EntertainmentGallery } from "@/components/entertainment-gallery";
 import { Magnetic } from "@/components/magnetic";
-import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/reveal";
+import { TextReveal } from "@/components/text-reveal";
 import { getBrands, getCategories, getProducts } from "@/lib/endpoints";
 
 const PERKS = [
@@ -66,13 +67,10 @@ const TESTIMONIALS = [
 ];
 
 export default async function Home() {
-  const [categories, brands, featured, bestSelling] = await Promise.all([
+  const [categories, brands, featured] = await Promise.all([
     getCategories().catch(() => []),
     getBrands().catch(() => []),
     getProducts({ featured: true, per_page: 8 })
-      .then((r) => r.data)
-      .catch(() => []),
-    getProducts({ sort: "best_selling", per_page: 10 })
       .then((r) => r.data)
       .catch(() => []),
   ]);
@@ -181,87 +179,82 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Categories */}
-      {categories && categories.length > 0 && (
-        <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+      {/* Brands — full-bleed infinite marquee on a soft tinted panel (early trust signal) */}
+      {brands && brands.length > 0 && (
+        <section className="mt-24 w-full sm:mt-32">
           <Reveal>
-            <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
-              Danh mục sản phẩm
+            <p className="mx-auto max-w-6xl px-4 text-center text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+              Đối tác thương hiệu
+            </p>
+            <h2 className="mx-auto mt-2 max-w-6xl px-4 text-center text-3xl font-semibold tracking-tight sm:text-5xl">
+              <TextReveal as="span">Thương hiệu nổi bật</TextReveal>
             </h2>
           </Reveal>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {categories.map((c, i) => (
-              <Reveal key={c.id} variant="scale" delay={i * 60}>
-                <Link
-                  href={`/products?category=${c.slug}`}
-                  className="group relative flex aspect-square flex-col items-end overflow-hidden rounded-3xl bg-muted/60 p-4 transition-shadow duration-500 hover:shadow-xl"
-                >
-                  {c.image ? (
-                    <Image
-                      src={c.image}
-                      alt={c.name}
-                      fill
-                      unoptimized
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+          <div className="relative mt-10 w-full overflow-hidden border-y border-border/60 bg-gradient-to-b from-muted/40 to-transparent py-10">
+            {/* Soft radial accent so the strip doesn't feel like a flat gray bar */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10 opacity-70"
+              style={{
+                background:
+                  "radial-gradient(60% 100% at 50% 0%, color-mix(in oklch, var(--color-primary) 8%, transparent), transparent 70%)",
+              }}
+            />
+            <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+              <div className="animate-marquee flex w-max items-center gap-6 hover:[animation-play-state:paused]">
+                {[...brands, ...brands].map((b, i) => (
+                  <Link
+                    key={`${b.id}-${i}`}
+                    href={`/products?brand=${b.slug}`}
+                    className="group relative flex h-28 w-56 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur-sm transition-all duration-500 ease-out hover:-translate-y-1.5 hover:border-primary/40 hover:bg-card hover:shadow-xl"
+                  >
+                    {/* Glow sweep on hover */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                      style={{
+                        background:
+                          "radial-gradient(60% 80% at 50% 100%, color-mix(in oklch, var(--color-primary) 18%, transparent), transparent 70%)",
+                      }}
                     />
-                  ) : null}
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0"
-                  />
-                  <span className="relative z-10 text-[15px] font-medium text-white">
-                    {c.name}
-                  </span>
-                </Link>
-              </Reveal>
-            ))}
+                    {b.logo ? (
+                      <Image
+                        src={b.logo}
+                        alt={b.name}
+                        width={120}
+                        height={56}
+                        unoptimized
+                        className="max-h-12 w-auto object-contain opacity-70 grayscale transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                        {b.name}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       )}
 
-      {/* Featured products */}
-      {featured && featured.length > 0 && (
-        <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
-          <Reveal className="flex items-end justify-between gap-4">
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-5xl">
-              Sản phẩm nổi bật
-            </h2>
-            <Link
-              href="/products?featured=true"
-              className="hidden shrink-0 items-center gap-1 text-[15px] font-medium text-primary transition-colors hover:opacity-70 sm:flex"
-            >
-              Xem tất cả <ArrowRight className="size-4" />
-            </Link>
-          </Reveal>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {featured.map((p, i) => (
-              <Reveal key={p.id} variant="scale" delay={i * 60}>
-                <ProductCard product={p} />
-              </Reveal>
-            ))}
-          </div>
-          <Link
-            href="/products?featured=true"
-            className="mt-6 flex items-center justify-center gap-1 text-[15px] font-medium text-primary transition-colors hover:opacity-70 sm:hidden"
-          >
-            Xem tất cả <ArrowRight className="size-4" />
-          </Link>
-        </section>
-      )}
+      {/* Categories — immersive full-bleed list (activetheory.net inspired) */}
+      {categories && categories.length > 0 && <CategoryShowcase categories={categories} />}
 
       {/* Endless shopping gallery (Apple "Endless entertainment" style) */}
-      {bestSelling && bestSelling.length > 0 && (
+      {featured && featured.length > 0 && (
         <div className="mt-24 sm:mt-32">
           <EntertainmentGallery
             title="Mua sắm bất tận."
             subtitle="Hàng trăm mẫu sản phẩm thể thao mới được cập nhật mỗi tuần."
-            products={bestSelling}
+            products={featured}
           />
         </div>
       )}
 
       {/* Promo CTA */}
-      <Reveal variant="slide" duration={1600} className="mx-auto mt-16 w-full max-w-6xl px-4 sm:mt-20">
+      <Reveal variant="slide" duration={1600} className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
         <section className="group relative overflow-hidden rounded-[2rem] bg-[oklch(0.16_0.03_235)] px-6 py-16 text-center text-background sm:px-10 sm:py-24">
           {/* Drifting dot grid */}
           <div
@@ -288,8 +281,10 @@ export default async function Home() {
               <Sparkles className="size-3.5 text-primary" />
               Dịch vụ in ấn
             </span>
-            <h2 className="mt-4 text-balance bg-gradient-to-b from-background to-background/60 bg-clip-text text-3xl font-semibold tracking-tight text-transparent sm:text-5xl">
-              In tên, số áo theo yêu cầu
+            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
+              <TextReveal className="bg-gradient-to-b from-background to-background/60 bg-clip-text text-transparent">
+                In tên, số áo theo yêu cầu
+              </TextReveal>
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-base text-background/70 sm:text-lg">
               Cá nhân hóa áo đấu của bạn với dịch vụ in tên, số theo yêu cầu — sắc nét, bền màu, giao nhanh.
@@ -311,45 +306,11 @@ export default async function Home() {
         </section>
       </Reveal>
 
-      {/* Brands */}
-      {brands && brands.length > 0 && (
-        <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
-          <Reveal>
-            <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
-              Thương hiệu nổi bật
-            </h2>
-          </Reveal>
-          <div className="mt-10 grid grid-cols-3 gap-6 sm:grid-cols-4 lg:grid-cols-6">
-            {brands.map((b, i) => (
-              <Reveal key={b.id} variant="scale" delay={i * 40}>
-                <Link
-                  href={`/products?brand=${b.slug}`}
-                  className="flex h-20 items-center justify-center rounded-2xl bg-muted/40 p-3 grayscale transition-all duration-500 hover:grayscale-0"
-                >
-                  {b.logo ? (
-                    <Image
-                      src={b.logo}
-                      alt={b.name}
-                      width={100}
-                      height={48}
-                      unoptimized
-                      className="max-h-10 w-auto object-contain"
-                    />
-                  ) : (
-                    <span className="text-sm font-semibold">{b.name}</span>
-                  )}
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Testimonials */}
       <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
         <Reveal>
           <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
-            Khách hàng nói gì
+            <TextReveal as="span">Khách hàng nói gì</TextReveal>
           </h2>
         </Reveal>
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -374,36 +335,6 @@ export default async function Home() {
           ))}
         </div>
       </section>
-
-      {/* Newsletter */}
-      <Reveal variant="scale" className="mx-auto my-24 w-full max-w-6xl px-4 sm:my-32">
-        <section className="flex flex-col items-center gap-4 rounded-[2rem] bg-muted/50 px-6 py-16 text-center sm:py-20">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Đăng ký nhận ưu đãi mới nhất
-          </h2>
-          <p className="max-w-md text-[15px] text-muted-foreground">
-            Nhận thông báo sớm nhất về sản phẩm mới và các chương trình khuyến mãi hấp dẫn.
-          </p>
-          <form className="mt-2 flex w-full max-w-md flex-col gap-2 sm:flex-row">
-            <input
-              type="email"
-              required
-              placeholder="Nhập email của bạn"
-              className="h-11 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none transition-shadow focus:border-primary focus:ring-2 focus:ring-primary/20"
-              suppressHydrationWarning
-            />
-            <Magnetic strength={10} className="shrink-0">
-              <button
-                type="submit"
-                className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-transform duration-300 active:scale-95"
-                suppressHydrationWarning
-              >
-                Đăng ký
-              </button>
-            </Magnetic>
-          </form>
-        </section>
-      </Reveal>
     </div>
   );
 }

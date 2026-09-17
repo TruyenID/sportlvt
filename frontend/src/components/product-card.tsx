@@ -100,7 +100,7 @@ export function ProductCard({ product }: { product: Product }) {
         )}
 
         {hasDiscount && (
-          <span className="absolute left-2 top-2 z-10 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
+          <span className="absolute left-2 top-2 z-10 rounded-none bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
             -{Math.round((1 - product.sale_price! / product.base_price) * 100)}%
           </span>
         )}
@@ -108,10 +108,10 @@ export function ProductCard({ product }: { product: Product }) {
         {/* Dark overlay + quick actions */}
         <div className="pointer-events-none absolute inset-0 z-10 flex items-end justify-center bg-gradient-to-t from-black/50 via-black/0 to-black/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <div className="mb-3 flex translate-y-3 gap-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            <span className="flex size-9 items-center justify-center rounded-full bg-white/90 text-foreground shadow-sm backdrop-blur-sm">
+            <span className="flex size-9 items-center justify-center rounded-none bg-white/90 text-foreground shadow-sm backdrop-blur-sm">
               <Eye className="size-4" />
             </span>
-            <span className="flex size-9 items-center justify-center rounded-full bg-white/90 text-foreground shadow-sm backdrop-blur-sm">
+            <span className="flex size-9 items-center justify-center rounded-none bg-white/90 text-foreground shadow-sm backdrop-blur-sm">
               <ShoppingBag className="size-4" />
             </span>
           </div>

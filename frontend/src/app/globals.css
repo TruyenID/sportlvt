@@ -247,6 +247,45 @@
 }
 
 /* ---------------------------------------------------------------------- */
+/* Site loader — one-time intro shown on first page load                   */
+/* ---------------------------------------------------------------------- */
+
+@keyframes loader-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-loader-pop {
+  animation: loader-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes loader-bar {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-loader-bar {
+  animation: loader-bar 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------------------------------------------------------------------- */
 /* Page / route transitions (native View Transitions API)                  */
 /* ---------------------------------------------------------------------- */
 
@@ -290,11 +329,123 @@
   }
 }
 
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee-scroll 28s linear infinite;
+}
+
 @keyframes page-slide-in {
   from {
     transform: translateY(12px);
   }
 }
+
+/* ---------------------------------------------------------------------- */
+/* Category "orbit" showcase                                               */
+/* ---------------------------------------------------------------------- */
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-orbit-spin {
+  animation: orbit-spin 90s linear infinite;
+}
+
+.animate-orbit-spin-reverse {
+  animation: orbit-spin 70s linear infinite reverse;
+}
+
+@keyframes sun-pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-primary) 35%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 18px color-mix(in oklch, var(--color-primary) 0%, transparent);
+  }
+}
+
+.animate-sun-pulse-glow {
+  animation: sun-pulse-glow 3s ease-out infinite;
+}
+
+@keyframes planet-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-planet-float {
+  animation: planet-float 4s ease-in-out infinite;
+}
+
+/* Stage 2 of the drill-down: once the flight clone (see
+   category-showcase.tsx) has docked at the sun's position, the new child
+   orbit plane fades/grows in from just behind the camera — translateZ +
+   rotateX give it real depth (matching the flight clone's 3D tumble)
+   instead of a flat 2D scale, so the whole transition reads as one
+   continuous 3D camera move rather than two mismatched effects stitched
+   together. */
+@keyframes orbit-zoom-in {
+  from {
+    opacity: 0;
+    transform: translateZ(-320px) rotateX(-8deg) scale(0.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateZ(0) rotateX(0deg) scale(1);
+  }
+}
+
+.animate-orbit-zoom-in {
+  animation: orbit-zoom-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-style: preserve-3d;
+}
+
+@keyframes star-twinkle {
+
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.animate-star-twinkle {
+  animation: star-twinkle 2.4s ease-in-out infinite;
+}
+
+
 
 /* Keep the header anchored: it should not fade/slide with the page */
 ::view-transition-group(site-header) {
@@ -320,16 +471,6 @@
   ::view-transition-group(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
-  }
-}
-
-/* Custom reactive cursor (desktop only, see custom-cursor.tsx) */
-@media (pointer: fine) {
-
-  body.has-custom-cursor,
-  body.has-custom-cursor a,
-  body.has-custom-cursor button {
-    cursor: none;
   }
 }
 

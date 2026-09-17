@@ -4,7 +4,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageTransition } from "@/components/page-transition";
-import { CustomCursor } from "@/components/custom-cursor";
+import { SiteLoader } from "@/components/site-loader";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-sans",
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <CustomCursor />
+        <SiteLoader />
         <PageTransition />
         <SiteHeader />
         <main className="flex-1">{children}</main>

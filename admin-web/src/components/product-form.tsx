@@ -179,6 +179,27 @@ export function ProductForm({ product }: { product?: Product }) {
 
       if (product) {
         await updateProduct(product.id, payload);
+        // Đồng bộ các biến thể chưa lưu (mới thêm) hoặc đã chỉnh sửa nhưng
+        // chưa bấm nút "Lưu" riêng của từng dòng, để bấm "Lưu sản phẩm" ở
+        // dưới cũng lưu luôn toàn bộ biến thể.
+        for (const v of variants) {
+          const variantPayload = {
+            sku: v.sku,
+            size: hasVariants ? v.size || null : null,
+            color: hasVariants ? v.color || null : null,
+            color_hex: hasVariants ? v.color_hex || null : null,
+            price: hasVariants && v.price ? Number(v.price) : null,
+            sale_price: hasVariants && v.sale_price ? Number(v.sale_price) : null,
+            stock: Number(v.stock) || 0,
+            image: v.image || null,
+            is_active: v.is_active ?? true,
+          };
+          if (v.id) {
+            await updateVariant(product.id, v.id, variantPayload);
+          } else if (v.sku) {
+            await createVariant(product.id, variantPayload);
+          }
+        }
       } else {
         payload.variants = variants.map((v) => ({
           sku: v.sku,

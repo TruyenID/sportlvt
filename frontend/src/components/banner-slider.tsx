@@ -96,7 +96,7 @@ export function BannerSlider() {
       className="relative w-full"
       style={{ height: `${STEP_COUNT * 80}vh` }}
     >
-      <div className="sticky top-0 flex h-screen flex-col gap-px overflow-hidden">
+      <div className="sticky top-0 flex h-screen flex-col gap-4 overflow-hidden">
         <div
           ref={rectTrackRef}
           className="flex h-1/2 gap-4 pl-4 will-change-transform transition-transform duration-500 ease-out"
@@ -111,7 +111,7 @@ export function BannerSlider() {
                 alt={banner.alt}
                 fill
                 priority={i === 0}
-                className="object-contain"
+                className="object-cover"
               />
             </div>
           ))}
