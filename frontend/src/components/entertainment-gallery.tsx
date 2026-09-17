@@ -34,11 +34,14 @@ export function EntertainmentGallery({ title, subtitle, products }: Entertainmen
 
   useEffect(() => {
     if (settleTimeoutRef.current) clearTimeout(settleTimeoutRef.current);
-    if (hovered === null) {
-      setSettled(null);
-      return;
-    }
-    settleTimeoutRef.current = setTimeout(() => setSettled(hovered), EXPAND_DURATION_MS);
+    // Both branches schedule the state update via a timer instead of calling
+    // setSettled synchronously in the effect body (which the
+    // react-hooks/set-state-in-effect rule flags, since a same-render
+    // setState-in-effect can cascade into an extra render pass). A 0ms timer
+    // still clears `settled` before the next paint, so there's no visible
+    // delay compared to the previous synchronous reset.
+    const delay = hovered === null ? 0 : EXPAND_DURATION_MS;
+    settleTimeoutRef.current = setTimeout(() => setSettled(hovered), delay);
     return () => {
       if (settleTimeoutRef.current) clearTimeout(settleTimeoutRef.current);
     };

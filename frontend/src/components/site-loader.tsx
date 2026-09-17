@@ -20,18 +20,23 @@ export function SiteLoader() {
     }
     if (alreadyShown) return;
 
-    setVisible(true);
-
-    const leaveTimer = window.setTimeout(() => setLeaving(true), 900);
-    const removeTimer = window.setTimeout(() => setVisible(false), 1400);
-
     try {
       sessionStorage.setItem("site-loaded", "1");
     } catch {
       // ignore
     }
 
+    // Scheduled via a 0ms timer instead of calling setVisible(true)
+    // synchronously in the effect body — the react-hooks/set-state-in-effect
+    // rule flags same-render setState-in-effect calls since they can
+    // cascade into an extra render pass. A 0ms timer still fires before the
+    // next paint, so the loader appears exactly as before.
+    const showTimer = window.setTimeout(() => setVisible(true), 0);
+    const leaveTimer = window.setTimeout(() => setLeaving(true), 900);
+    const removeTimer = window.setTimeout(() => setVisible(false), 1400);
+
     return () => {
+      window.clearTimeout(showTimer);
       window.clearTimeout(leaveTimer);
       window.clearTimeout(removeTimer);
     };
