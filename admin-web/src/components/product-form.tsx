@@ -254,6 +254,9 @@ export function ProductForm({ product }: { product?: Product }) {
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="slug">Slug</Label>
               <Input id="slug" required value={slug} onChange={(e) => setSlug(e.target.value)} />
+              <p className="text-xs text-muted-foreground">
+                Đường dẫn trên website, tự sinh từ tên sản phẩm (vd: &quot;Áo thun nam&quot; → &quot;ao-thun-nam&quot;).
+              </p>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="category">Danh mục</Label>
@@ -329,6 +332,9 @@ export function ProductForm({ product }: { product?: Product }) {
                     value={variants[0]?.sku ?? ""}
                     onChange={(e) => patchVariant(0, { sku: e.target.value })}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Mã quản lý riêng của sản phẩm, dùng để phân biệt tồn kho (vd: &quot;AT-NAM-001&quot;).
+                  </p>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="stock">Tồn kho</Label>

@@ -10,9 +10,9 @@ import {
   Truck,
   Undo2,
 } from "lucide-react";
-import { BannerSlider } from "@/components/banner-slider";
 import { CategoryShowcase } from "@/components/category-showcase";
 import { EntertainmentGallery } from "@/components/entertainment-gallery";
+import { HeroBanner } from "@/components/hero-banner";
 import { Magnetic } from "@/components/magnetic";
 import { Reveal } from "@/components/reveal";
 import { TextReveal } from "@/components/text-reveal";
@@ -77,56 +77,11 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero */}
-      <section className="mx-auto w-full max-w-5xl px-4 pt-16 pb-10 text-center sm:pt-24 sm:pb-14">
-        <Reveal variant="scale" delay={40}>
-          <span className="animate-badge-pulse-glow inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide">
-            <Sparkles className="size-3.5 shrink-0 text-primary" />
-            <span className="animate-gradient-flow bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-clip-text text-transparent">
-              Nhận in tên, số áo theo yêu cầu
-            </span>
-          </span>
-        </Reveal>
-        <Reveal variant="scale" delay={80}>
-          <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
-            Đồ thể thao chính hãng.
-            <br />
-            Cho mọi cuộc chơi.
-          </h1>
-        </Reveal>
-        <Reveal variant="scale" delay={160}>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground sm:text-xl">
-            Khám phá bộ sưu tập giày, áo và dụng cụ thể thao được chọn lọc kỹ càng —
-            kèm dịch vụ in tên, số theo yêu cầu.
-          </p>
-        </Reveal>
-        <Reveal variant="scale" delay={240}>
-          <div className="mt-7 flex items-center justify-center gap-6">
-            <Magnetic>
-              <Link
-                href="/products"
-                className="flex items-center gap-1.5 rounded-full bg-primary px-6 py-2.5 text-[15px] font-medium text-primary-foreground transition-transform duration-300 active:scale-95"
-              >
-                Mua sắm ngay
-              </Link>
-            </Magnetic>
-            <Magnetic strength={10}>
-              <Link
-                href="/products?featured=true"
-                className="flex items-center gap-1 text-[15px] font-medium text-primary transition-colors hover:opacity-70"
-              >
-                Sản phẩm nổi bật <ArrowRight className="size-4" />
-              </Link>
-            </Magnetic>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* Banner slider (pinned scroll-driven horizontal gallery) */}
-      <BannerSlider />
+      {/* Hero banner (dynamic slider managed via admin settings) */}
+      <HeroBanner />
 
       {/* Perks */}
-      <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+      <section className="mx-auto mt-16 w-full max-w-6xl px-4 sm:mt-24 lg:mt-32">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PERKS.map(({ icon: Icon, title, desc, color }, i) => (
             <Reveal key={title} variant="scale" delay={i * 100}>
@@ -179,61 +134,49 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Brands — full-bleed infinite marquee on a soft tinted panel (early trust signal) */}
+      {/* Brands — minimal "trusted by" strip, logos as plain marks (no boxy cards) */}
       {brands && brands.length > 0 && (
-        <section className="mt-24 w-full sm:mt-32">
+        <section className="mx-auto mt-16 w-full max-w-6xl px-4 sm:mt-24 lg:mt-32">
           <Reveal>
-            <p className="mx-auto max-w-6xl px-4 text-center text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-              Đối tác thương hiệu
-            </p>
-            <h2 className="mx-auto mt-2 max-w-6xl px-4 text-center text-3xl font-semibold tracking-tight sm:text-5xl">
-              <TextReveal as="span">Thương hiệu nổi bật</TextReveal>
-            </h2>
-          </Reveal>
-          <div className="relative mt-10 w-full overflow-hidden border-y border-border/60 bg-gradient-to-b from-muted/40 to-transparent py-10">
-            {/* Soft radial accent so the strip doesn't feel like a flat gray bar */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 -z-10 opacity-70"
-              style={{
-                background:
-                  "radial-gradient(60% 100% at 50% 0%, color-mix(in oklch, var(--color-primary) 8%, transparent), transparent 70%)",
-              }}
-            />
-            <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-              <div className="animate-marquee flex w-max items-center gap-6 hover:[animation-play-state:paused]">
-                {[...brands, ...brands].map((b, i) => (
-                  <Link
-                    key={`${b.id}-${i}`}
-                    href={`/products?brand=${b.slug}`}
-                    className="group relative flex h-28 w-56 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-border/70 bg-card/80 p-6 shadow-sm backdrop-blur-sm transition-all duration-500 ease-out hover:-translate-y-1.5 hover:border-primary/40 hover:bg-card hover:shadow-xl"
-                  >
-                    {/* Glow sweep on hover */}
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                      style={{
-                        background:
-                          "radial-gradient(60% 80% at 50% 100%, color-mix(in oklch, var(--color-primary) 18%, transparent), transparent 70%)",
-                      }}
-                    />
-                    {b.logo ? (
-                      <Image
-                        src={b.logo}
-                        alt={b.name}
-                        width={120}
-                        height={56}
-                        unoptimized
-                        className="max-h-12 w-auto object-contain opacity-70 grayscale transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0"
-                      />
-                    ) : (
-                      <span className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
-                        {b.name}
-                      </span>
-                    )}
-                  </Link>
-                ))}
+            <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  Đối tác thương hiệu
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
+                  <TextReveal as="span">Thương hiệu nổi bật</TextReveal>
+                </h2>
               </div>
+              <p className="max-w-xs text-sm text-muted-foreground">
+                Phân phối chính hãng các thương hiệu thể thao hàng đầu thế giới.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="relative mt-8 w-full overflow-hidden rounded-3xl border border-border/60 bg-card/40 py-8 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] sm:mt-10 sm:py-10">
+            <div className="animate-marquee flex w-max items-center hover:[animation-play-state:paused]">
+              {[...brands, ...brands].map((b, i) => (
+                <Link
+                  key={`${b.id}-${i}`}
+                  href={`/products?brand=${b.slug}`}
+                  className="group flex h-14 shrink-0 items-center justify-center px-6 sm:h-16 sm:px-14"
+                >
+                  {b.logo ? (
+                    <Image
+                      src={b.logo}
+                      alt={b.name}
+                      width={120}
+                      height={48}
+                      unoptimized
+                      className="max-h-10 w-auto object-contain opacity-50 grayscale transition-all duration-300 ease-out group-hover:scale-110 group-hover:opacity-100 group-hover:grayscale-0"
+                    />
+                  ) : (
+                    <span className="text-base font-semibold text-muted-foreground/60 transition-colors duration-300 group-hover:text-foreground">
+                      {b.name}
+                    </span>
+                  )}
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -244,7 +187,7 @@ export default async function Home() {
 
       {/* Endless shopping gallery (Apple "Endless entertainment" style) */}
       {featured && featured.length > 0 && (
-        <div className="mt-24 sm:mt-32">
+        <div className="mt-16 sm:mt-24 lg:mt-32">
           <EntertainmentGallery
             title="Mua sắm bất tận."
             subtitle="Hàng trăm mẫu sản phẩm thể thao mới được cập nhật mỗi tuần."
@@ -254,8 +197,8 @@ export default async function Home() {
       )}
 
       {/* Promo CTA */}
-      <Reveal variant="slide" duration={1600} className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
-        <section className="group relative overflow-hidden rounded-[2rem] bg-[oklch(0.16_0.03_235)] px-6 py-16 text-center text-background sm:px-10 sm:py-24">
+      <Reveal variant="slide" duration={1600} className="mx-auto mt-16 w-full max-w-6xl px-4 sm:mt-24 lg:mt-32">
+        <section className="group relative overflow-hidden rounded-[2rem] bg-[oklch(0.16_0.03_235)] px-6 py-12 text-center text-background sm:px-10 sm:py-24">
           {/* Drifting dot grid */}
           <div
             aria-hidden
@@ -307,13 +250,13 @@ export default async function Home() {
       </Reveal>
 
       {/* Testimonials */}
-      <section className="mx-auto mt-24 w-full max-w-6xl px-4 sm:mt-32">
+      <section className="mx-auto mt-16 w-full max-w-6xl px-4 pb-16 sm:mt-24 sm:pb-24 lg:mt-32">
         <Reveal>
-          <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
+          <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-5xl">
             <TextReveal as="span">Khách hàng nói gì</TextReveal>
           </h2>
         </Reveal>
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-3">
           {TESTIMONIALS.map((t, i) => (
             <Reveal key={t.name} variant="scale" delay={i * 100}>
               <div className="flex h-full flex-col gap-3 rounded-3xl bg-muted/50 p-6">
@@ -335,6 +278,7 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
     </div>
   );
 }

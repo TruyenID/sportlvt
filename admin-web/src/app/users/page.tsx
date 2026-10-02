@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Trash2, Users as UsersIcon } from "lucide-react";
+import { Search, Trash2, Users as UsersIcon, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -84,7 +84,12 @@ export default function UsersPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Quản lý khách hàng</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">Quản lý khách hàng</h1>
+          <p className="text-sm text-muted-foreground">
+            Xem danh sách khách hàng và phân quyền quản trị viên.
+          </p>
+        </div>
       </div>
 
       <form
@@ -140,9 +145,10 @@ export default function UsersPage() {
             ) : users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-40 text-center text-muted-foreground">
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-1">
                     <UsersIcon className="size-8 text-muted-foreground/50" />
-                    Chưa có người dùng nào.
+                    <p>Chưa có người dùng nào.</p>
+                    <p className="text-xs">Người dùng sẽ xuất hiện ở đây khi họ đăng ký tài khoản.</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -169,7 +175,7 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(u)}>
+                    <Button variant="ghost" size="icon-sm" title={`Xóa ${u.name}`} onClick={() => setDeleteTarget(u)}>
                       <Trash2 className="size-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -187,8 +193,11 @@ export default function UsersPage() {
         }}
       >
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xóa người dùng này?</AlertDialogTitle>
+          <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10">
+              <TriangleAlert className="size-6 text-destructive" />
+            </div>
+            <AlertDialogTitle className="text-lg">Xóa người dùng này?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget && (
                 <>
@@ -198,10 +207,16 @@ export default function UsersPage() {
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="sm:justify-center">
             <AlertDialogCancel disabled={deleting}>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Đang xóa..." : "Xóa"}
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="gap-1.5">
+              {deleting ? (
+                "Đang xóa..."
+              ) : (
+                <>
+                  <Trash2 className="size-4" /> Xóa người dùng
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

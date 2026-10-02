@@ -19,6 +19,7 @@ const pageTitles: Record<string, string> = {
   "/products": "Quản lý sản phẩm",
   "/categories": "Danh mục",
   "/brands": "Thương hiệu",
+  "/contacts": "Liên hệ",
   "/users": "Khách hàng",
   "/settings": "Cài đặt",
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Pencil, X, UploadCloud } from "lucide-react";
+import { Plus, Trash2, Pencil, X, UploadCloud, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { createCategory, deleteCategory, getCategories, updateCategory, uploadImage } from "@/lib/endpoints";
 import { slugify } from "@/lib/utils";
 import type { Category } from "@/lib/types";
@@ -39,6 +49,8 @@ export default function CategoriesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -119,20 +131,30 @@ export default function CategoriesPage() {
     }
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Xóa danh mục này?")) return;
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setError(null);
     try {
-      await deleteCategory(id);
-      await load();
+      await deleteCategory(deleteTarget.id);
+      setCategories((list) => list.filter((c) => c.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Không thể xóa danh mục.");
+    } finally {
+      setDeleting(false);
     }
   }
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Quản lý danh mục</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">Quản lý danh mục</h1>
+          <p className="text-sm text-muted-foreground">
+            Tạo và sắp xếp các danh mục sản phẩm hiển thị trên website.
+          </p>
+        </div>
         <Button className="gap-1.5" onClick={openCreate}>
           <Plus className="size-4" /> Thêm danh mục
         </Button>
@@ -174,6 +196,9 @@ export default function CategoriesPage() {
                     onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
                     required
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Đường dẫn trên website, tự sinh từ tên (vd: &quot;Giày thể thao&quot; → &quot;giay-the-thao&quot;).
+                  </p>
                 </div>
                 <div className="flex flex-1 flex-col gap-1.5">
                   <Label htmlFor="parent">Danh mục cha</Label>
@@ -294,7 +319,12 @@ export default function CategoriesPage() {
               ) : categories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    Chưa có danh mục nào.
+                    <div className="flex flex-col items-center gap-1 py-4">
+                      <p>Chưa có danh mục nào.</p>
+                      <p className="text-xs">
+                        Bấm nút &quot;Thêm danh mục&quot; phía trên để tạo danh mục đầu tiên.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -320,10 +350,10 @@ export default function CategoriesPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon-sm" onClick={() => openEdit(c)}>
+                        <Button variant="ghost" size="icon-sm" title={`Sửa ${c.name}`} onClick={() => openEdit(c)}>
                           <Pencil className="size-4" />
                         </Button>
-                        <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(c.id)}>
+                        <Button variant="ghost" size="icon-sm" title={`Xóa ${c.name}`} onClick={() => setDeleteTarget(c)}>
                           <Trash2 className="size-4 text-destructive" />
                         </Button>
                       </div>
@@ -335,6 +365,42 @@ export default function CategoriesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10">
+              <TriangleAlert className="size-6 text-destructive" />
+            </div>
+            <AlertDialogTitle className="text-lg">Xóa danh mục này?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget && (
+                <>
+                  Danh mục <span className="font-medium text-foreground">&ldquo;{deleteTarget.name}&rdquo;</span> sẽ
+                  bị xóa vĩnh viễn và không thể khôi phục.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogCancel disabled={deleting}>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="gap-1.5">
+              {deleting ? (
+                "Đang xóa..."
+              ) : (
+                <>
+                  <Trash2 className="size-4" /> Xóa danh mục
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

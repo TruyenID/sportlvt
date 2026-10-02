@@ -1,16 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getBanners } from "@/lib/endpoints";
+import type { Banner } from "@/lib/types";
 
-const RECT_BANNERS = [
+const DEFAULT_RECT_BANNERS = [
   { src: "/banner-1.webp", alt: "Khuyến mãi 1" },
   { src: "/banner-3.webp", alt: "Khuyến mãi 3" },
   { src: "/banner-cn.webp", alt: "Khuyến mãi" },
   { src: "/banner-cn-1.webp", alt: "Khuyến mãi" },
 ];
 
-const SQUARE_BANNERS = [
+const DEFAULT_SQUARE_BANNERS = [
   { src: "/banner-2.webp", alt: "Khuyến mãi 2" },
   { src: "/banner-4.webp", alt: "Khuyến mãi 4" },
   { src: "/banner-5.webp", alt: "Khuyến mãi 5" },
@@ -18,8 +20,6 @@ const SQUARE_BANNERS = [
   { src: "/banner-7.webp", alt: "Khuyến mãi 7" },
   { src: "/banner-8.webp", alt: "Khuyến mãi 8" },
 ];
-
-const STEP_COUNT = Math.max(RECT_BANNERS.length, SQUARE_BANNERS.length);
 
 /**
  * Pinned scroll-driven horizontal banner gallery — same mechanic as Apple's
@@ -34,6 +34,29 @@ export function BannerSlider() {
   const rectTrackRef = useRef<HTMLDivElement>(null);
   const squareTrackRef = useRef<HTMLDivElement>(null);
   const lastIndexRef = useRef(-1);
+  const [rectBanners, setRectBanners] = useState<{ src: string; alt: string; link: string | null }[]>(
+    DEFAULT_RECT_BANNERS.map((b) => ({ ...b, link: null })),
+  );
+  const [squareBanners, setSquareBanners] = useState<{ src: string; alt: string; link: string | null }[]>(
+    DEFAULT_SQUARE_BANNERS.map((b) => ({ ...b, link: null })),
+  );
+
+  useEffect(() => {
+    getBanners()
+      .then((banners: Banner[]) => {
+        const rect = banners
+          .filter((b) => b.shape === "rect")
+          .map((b) => ({ src: b.image, alt: b.title ?? "", link: b.link }));
+        const square = banners
+          .filter((b) => b.shape === "square")
+          .map((b) => ({ src: b.image, alt: b.title ?? "", link: b.link }));
+        if (rect.length > 0) setRectBanners(rect);
+        if (square.length > 0) setSquareBanners(square);
+      })
+      .catch(() => { });
+  }, []);
+
+  const stepCount = Math.max(rectBanners.length, squareBanners.length);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -71,7 +94,7 @@ export function BannerSlider() {
         moveTrack(rectTrackRef.current, progress, "right");
         moveTrack(squareTrackRef.current, progress, "left");
 
-        const stepIndex = Math.round(progress * (STEP_COUNT - 1));
+        const stepIndex = Math.round(progress * (stepCount - 1));
         if (stepIndex !== lastIndexRef.current) {
           lastIndexRef.current = stepIndex;
         }
@@ -87,21 +110,21 @@ export function BannerSlider() {
       window.removeEventListener("resize", onScroll);
       if (rafId) cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [stepCount]);
 
   return (
     <section
       id="banner-slider"
       ref={wrapperRef}
       className="relative w-full"
-      style={{ height: `${STEP_COUNT * 80}vh` }}
+      style={{ height: `${stepCount * 60}vh` }}
     >
-      <div className="sticky top-0 flex h-screen flex-col gap-4 overflow-hidden">
+      <div className="sticky top-0 flex h-dvh flex-col gap-2 overflow-hidden sm:gap-4">
         <div
           ref={rectTrackRef}
-          className="flex h-1/2 gap-4 pl-4 will-change-transform transition-transform duration-500 ease-out"
+          className="flex h-[42%] gap-2 pl-3 will-change-transform transition-transform duration-500 ease-out sm:h-1/2 sm:gap-4 sm:pl-4"
         >
-          {RECT_BANNERS.map((banner, i) => (
+          {rectBanners.map((banner, i) => (
             <div
               key={banner.src}
               className="relative h-full w-auto shrink-0 aspect-[16/9] overflow-hidden"
@@ -110,19 +133,21 @@ export function BannerSlider() {
                 src={banner.src}
                 alt={banner.alt}
                 fill
+                unoptimized
                 priority={i === 0}
+                sizes="(max-width: 640px) 70vw, 40vw"
                 className="object-cover"
               />
             </div>
           ))}
-          <div aria-hidden className="w-4 shrink-0" />
+          <div aria-hidden className="w-3 shrink-0 sm:w-4" />
         </div>
 
         <div
           ref={squareTrackRef}
-          className="flex h-1/2 gap-4 pl-4 will-change-transform transition-transform duration-500 ease-out"
+          className="flex h-[42%] gap-2 pl-3 will-change-transform transition-transform duration-500 ease-out sm:h-1/2 sm:gap-4 sm:pl-4"
         >
-          {SQUARE_BANNERS.map((banner) => (
+          {squareBanners.map((banner) => (
             <div
               key={banner.src}
               className="relative h-full w-auto shrink-0 aspect-square overflow-hidden bg-muted"
@@ -131,11 +156,13 @@ export function BannerSlider() {
                 src={banner.src}
                 alt={banner.alt}
                 fill
+                unoptimized
+                sizes="(max-width: 640px) 42vw, 25vw"
                 className="object-contain"
               />
             </div>
           ))}
-          <div aria-hidden className="w-4 shrink-0" />
+          <div aria-hidden className="w-3 shrink-0 sm:w-4" />
         </div>
       </div>
     </section>

@@ -142,10 +142,10 @@ export function ProductGalleryWithOptions({
                       disabled={!available}
                       onClick={() => available && setColor(c)}
                       className={`rounded-lg border px-3 py-1.5 text-sm ${!available
-                          ? "cursor-not-allowed border-border text-muted-foreground/40 line-through"
-                          : color === c
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border"
+                        ? "cursor-not-allowed border-border text-muted-foreground/40 line-through"
+                        : color === c
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border"
                         }`}
                     >
                       {c}

@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 import { uploadToCloudinary } from "./cloudinary";
-import type { Brand, Category, Paginated, Product, ProductVariant, User } from "./types";
+import type { Banner, Brand, Category, Contact, HeroSlide, Page, Paginated, Product, ProductVariant, SiteSettings, User } from "./types";
 
 const PRODUCT_SELECT =
   "*, category:categories(*), brand:brands(*), images:product_images(*), variants:product_variants(*)";
@@ -209,6 +209,99 @@ export async function updateAdminUser(id: string, data: Partial<Pick<User, "name
 
 export async function deleteAdminUser(id: string) {
   const { error } = await supabase.from("profiles").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return { message: "ok" };
+}
+
+// ---------- Site settings ----------
+export async function getSiteSettings() {
+  const res = await supabase.from("site_settings").select("*").eq("id", 1).single();
+  return unwrap<SiteSettings>(res);
+}
+
+export async function updateSiteSettings(data: Partial<SiteSettings>) {
+  const res = await supabase.from("site_settings").update(data).eq("id", 1).select("*").single();
+  return unwrap<SiteSettings>(res);
+}
+
+// ---------- Banners ----------
+export async function getBanners() {
+  const res = await supabase.from("banners").select("*").order("shape").order("sort_order");
+  return unwrap<Banner[]>(res);
+}
+
+// ---------- Contacts ----------
+export async function getContacts() {
+  const res = await supabase.from("contacts").select("*").order("created_at", { ascending: false });
+  return unwrap<Contact[]>(res);
+}
+
+export async function updateContactStatus(id: number, status: "new" | "read") {
+  const res = await supabase.from("contacts").update({ status }).eq("id", id).select("*").single();
+  return unwrap<Contact>(res);
+}
+
+export async function deleteContact(id: number) {
+  const { error } = await supabase.from("contacts").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function createBanner(data: Partial<Banner>) {
+  const res = await supabase.from("banners").insert(data).select("*").single();
+  return unwrap<Banner>(res);
+}
+
+export async function updateBanner(id: number, data: Partial<Banner>) {
+  const res = await supabase.from("banners").update(data).eq("id", id).select("*").single();
+  return unwrap<Banner>(res);
+}
+
+export async function deleteBanner(id: number) {
+  const { error } = await supabase.from("banners").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return { message: "ok" };
+}
+
+// ---------- Hero slides ----------
+export async function getHeroSlides() {
+  const res = await supabase.from("hero_slides").select("*").order("sort_order");
+  return unwrap<HeroSlide[]>(res);
+}
+
+export async function createHeroSlide(data: Partial<HeroSlide>) {
+  const res = await supabase.from("hero_slides").insert(data).select("*").single();
+  return unwrap<HeroSlide>(res);
+}
+
+export async function updateHeroSlide(id: number, data: Partial<HeroSlide>) {
+  const res = await supabase.from("hero_slides").update(data).eq("id", id).select("*").single();
+  return unwrap<HeroSlide>(res);
+}
+
+export async function deleteHeroSlide(id: number) {
+  const { error } = await supabase.from("hero_slides").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return { message: "ok" };
+}
+
+// ---------- Pages ----------
+export async function getPages() {
+  const res = await supabase.from("pages").select("*").order("title");
+  return unwrap<Page[]>(res);
+}
+
+export async function createPage(data: Partial<Page>) {
+  const res = await supabase.from("pages").insert(data).select("*").single();
+  return unwrap<Page>(res);
+}
+
+export async function updatePage(id: number, data: Partial<Page>) {
+  const res = await supabase.from("pages").update(data).eq("id", id).select("*").single();
+  return unwrap<Page>(res);
+}
+
+export async function deletePage(id: number) {
+  const { error } = await supabase.from("pages").delete().eq("id", id);
   if (error) throw new Error(error.message);
   return { message: "ok" };
 }

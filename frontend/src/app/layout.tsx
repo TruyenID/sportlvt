@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageTransition } from "@/components/page-transition";
 import { SiteLoader } from "@/components/site-loader";
+import { ContactWidget } from "@/components/contact-widget";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-sans",
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <ContactWidget />
       </body>
     </html>
   );

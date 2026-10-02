@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Plus, Search, Trash2, Pencil, PackageX, ImageOff } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, PackageX, ImageOff, UploadCloud, TriangleAlert, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +27,7 @@ import {
 import { deleteProduct, getAdminProducts } from "@/lib/endpoints";
 import { formatVnd } from "@/lib/utils";
 import type { Product } from "@/lib/types";
+import { exportProductsToExcel } from "./export";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,6 +36,7 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   async function load(search?: string) {
     setLoading(true);
@@ -53,6 +55,26 @@ export default function ProductsPage() {
     load();
   }, []);
 
+  async function handleExport() {
+    setExporting(true);
+    setError(null);
+    try {
+      let page = 1;
+      let all: Product[] = [];
+      while (true) {
+        const res = await getAdminProducts({ page });
+        all = all.concat(res.data);
+        if (page >= res.last_page || res.data.length === 0) break;
+        page++;
+      }
+      exportProductsToExcel(all);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không thể xuất Excel.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -70,12 +92,27 @@ export default function ProductsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Quản lý sản phẩm</h1>
-        <Link href="/products/new">
-          <Button className="gap-1.5">
-            <Plus className="size-4" /> Thêm sản phẩm
+        <div>
+          <h1 className="text-2xl font-semibold">Quản lý sản phẩm</h1>
+          <p className="text-sm text-muted-foreground">
+            Xem, thêm, sửa hoặc xóa sản phẩm đang bán trên website.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-1.5" onClick={handleExport} disabled={exporting}>
+            <FileDown className="size-4" /> {exporting ? "Đang xuất..." : "Xuất Excel"}
           </Button>
-        </Link>
+          <Link href="/products/bulk-import">
+            <Button variant="outline" className="gap-1.5">
+              <UploadCloud className="size-4" /> Thêm hàng loạt
+            </Button>
+          </Link>
+          <Link href="/products/new">
+            <Button className="gap-1.5">
+              <Plus className="size-4" /> Thêm sản phẩm
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <form
@@ -123,9 +160,12 @@ export default function ProductsPage() {
             ) : products.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-40 text-center text-muted-foreground">
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-1">
                     <PackageX className="size-8 text-muted-foreground/50" />
-                    Chưa có sản phẩm nào.
+                    <p>Chưa có sản phẩm nào.</p>
+                    <p className="text-xs">
+                      Bấm nút &quot;Thêm sản phẩm&quot; phía trên để tạo sản phẩm đầu tiên.
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -167,13 +207,14 @@ export default function ProductsPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Link href={`/products/${p.id}`}>
-                          <Button variant="ghost" size="icon-sm">
+                          <Button variant="ghost" size="icon-sm" title={`Sửa ${p.name}`}>
                             <Pencil className="size-4" />
                           </Button>
                         </Link>
                         <Button
                           variant="ghost"
                           size="icon-sm"
+                          title={`Xóa ${p.name}`}
                           onClick={() => setDeleteTarget(p)}
                         >
                           <Trash2 className="size-4 text-destructive" />
@@ -195,8 +236,11 @@ export default function ProductsPage() {
         }}
       >
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xóa sản phẩm này?</AlertDialogTitle>
+          <AlertDialogHeader className="items-center text-center sm:items-center sm:text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10">
+              <TriangleAlert className="size-6 text-destructive" />
+            </div>
+            <AlertDialogTitle className="text-lg">Xóa sản phẩm này?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget && (
                 <>
@@ -206,10 +250,16 @@ export default function ProductsPage() {
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="sm:justify-center">
             <AlertDialogCancel disabled={deleting}>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Đang xóa..." : "Xóa"}
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="gap-1.5">
+              {deleting ? (
+                "Đang xóa..."
+              ) : (
+                <>
+                  <Trash2 className="size-4" /> Xóa sản phẩm
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

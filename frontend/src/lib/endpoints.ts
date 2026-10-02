@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Brand, Category, Paginated, Product } from "./types";
+import type { Banner, Brand, Category, Contact, HeroSlide, Page, Paginated, Product, SiteSettings } from "./types";
 
 const PRODUCT_SELECT =
   "*, category:categories(*), brand:brands(*), images:product_images(*), variants:product_variants(*)";
@@ -18,6 +18,50 @@ export async function getCategories() {
 export async function getBrands() {
   const res = await supabase.from("brands").select("*").eq("is_active", true).order("name");
   return unwrap<Brand[]>(res);
+}
+
+export async function getSiteSettings() {
+  const res = await supabase.from("site_settings").select("*").eq("id", 1).single();
+  return unwrap<SiteSettings>(res);
+}
+
+export async function getBanners() {
+  const res = await supabase
+    .from("banners")
+    .select("*")
+    .eq("is_active", true)
+    .order("shape")
+    .order("sort_order");
+  return unwrap<Banner[]>(res);
+}
+
+export async function getHeroSlides() {
+  const res = await supabase
+    .from("hero_slides")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order");
+  return unwrap<HeroSlide[]>(res);
+}
+
+export async function getPages() {
+  const res = await supabase.from("pages").select("*").eq("is_active", true).order("title");
+  return unwrap<Page[]>(res);
+}
+
+export async function createContact(data: {
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  message: string;
+}) {
+  const res = await supabase.from("contacts").insert(data).select("*").single();
+  return unwrap<Contact>(res);
+}
+
+export async function getPage(slug: string) {
+  const res = await supabase.from("pages").select("*").eq("slug", slug).eq("is_active", true).single();
+  return unwrap<Page>(res);
 }
 
 export interface ProductFilters {

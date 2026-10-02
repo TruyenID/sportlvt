@@ -50,71 +50,71 @@
 
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.18 0.02 235);
+  --foreground: oklch(0.18 0.03 258);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 235);
+  --card-foreground: oklch(0.18 0.03 258);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 235);
-  --primary: oklch(0.58 0.19 235);
+  --popover-foreground: oklch(0.18 0.03 258);
+  --primary: oklch(0.57 0.21 258);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.015 235);
-  --secondary-foreground: oklch(0.22 0.02 235);
-  --muted: oklch(0.96 0.015 235);
-  --muted-foreground: oklch(0.5 0.02 235);
-  --accent: oklch(0.94 0.045 235);
-  --accent-foreground: oklch(0.3 0.1 235);
+  --secondary: oklch(0.96 0.02 258);
+  --secondary-foreground: oklch(0.22 0.03 258);
+  --muted: oklch(0.96 0.02 258);
+  --muted-foreground: oklch(0.5 0.03 258);
+  --accent: oklch(0.94 0.055 258);
+  --accent-foreground: oklch(0.3 0.12 258);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.012 235);
-  --input: oklch(0.91 0.012 235);
-  --ring: oklch(0.58 0.19 235 / 50%);
-  --chart-1: oklch(0.58 0.19 235);
+  --border: oklch(0.91 0.016 258);
+  --input: oklch(0.91 0.016 258);
+  --ring: oklch(0.57 0.21 258 / 50%);
+  --chart-1: oklch(0.57 0.21 258);
   --chart-2: oklch(0.7 0.18 40);
   --chart-3: oklch(0.7 0.15 150);
   --chart-4: oklch(0.75 0.15 90);
   --chart-5: oklch(0.55 0.2 300);
   --radius: 0.75rem;
-  --sidebar: oklch(0.985 0.005 235);
-  --sidebar-foreground: oklch(0.18 0.02 235);
-  --sidebar-primary: oklch(0.58 0.19 235);
+  --sidebar: oklch(0.985 0.007 258);
+  --sidebar-foreground: oklch(0.18 0.03 258);
+  --sidebar-primary: oklch(0.57 0.21 258);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.01 235);
-  --sidebar-accent-foreground: oklch(0.22 0.02 235);
-  --sidebar-border: oklch(0.91 0.01 235);
-  --sidebar-ring: oklch(0.58 0.19 235 / 50%);
+  --sidebar-accent: oklch(0.96 0.014 258);
+  --sidebar-accent-foreground: oklch(0.22 0.03 258);
+  --sidebar-border: oklch(0.91 0.014 258);
+  --sidebar-ring: oklch(0.57 0.21 258 / 50%);
 }
 
 .dark {
-  --background: oklch(0.16 0.015 235);
-  --foreground: oklch(0.96 0.005 235);
-  --card: oklch(0.21 0.015 235);
-  --card-foreground: oklch(0.96 0.005 235);
-  --popover: oklch(0.21 0.015 235);
-  --popover-foreground: oklch(0.96 0.005 235);
-  --primary: oklch(0.68 0.18 235);
-  --primary-foreground: oklch(0.15 0.02 235);
-  --secondary: oklch(0.28 0.015 235);
-  --secondary-foreground: oklch(0.96 0.005 235);
-  --muted: oklch(0.28 0.015 235);
-  --muted-foreground: oklch(0.68 0.02 235);
-  --accent: oklch(0.3 0.06 235);
-  --accent-foreground: oklch(0.92 0.03 235);
+  --background: oklch(0.16 0.02 258);
+  --foreground: oklch(0.96 0.007 258);
+  --card: oklch(0.21 0.02 258);
+  --card-foreground: oklch(0.96 0.007 258);
+  --popover: oklch(0.21 0.02 258);
+  --popover-foreground: oklch(0.96 0.007 258);
+  --primary: oklch(0.64 0.19 251);
+  --primary-foreground: oklch(0.15 0.02 258);
+  --secondary: oklch(0.28 0.02 258);
+  --secondary-foreground: oklch(0.96 0.007 258);
+  --muted: oklch(0.28 0.02 258);
+  --muted-foreground: oklch(0.68 0.03 258);
+  --accent: oklch(0.3 0.08 258);
+  --accent-foreground: oklch(0.92 0.04 258);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.68 0.18 235 / 50%);
-  --chart-1: oklch(0.68 0.18 235);
+  --ring: oklch(0.64 0.19 251 / 50%);
+  --chart-1: oklch(0.64 0.19 251);
   --chart-2: oklch(0.7 0.18 40);
   --chart-3: oklch(0.7 0.15 150);
   --chart-4: oklch(0.75 0.15 90);
   --chart-5: oklch(0.65 0.2 300);
-  --sidebar: oklch(0.21 0.015 235);
-  --sidebar-foreground: oklch(0.96 0.005 235);
-  --sidebar-primary: oklch(0.68 0.18 235);
-  --sidebar-primary-foreground: oklch(0.15 0.02 235);
-  --sidebar-accent: oklch(0.28 0.015 235);
-  --sidebar-accent-foreground: oklch(0.96 0.005 235);
+  --sidebar: oklch(0.21 0.02 258);
+  --sidebar-foreground: oklch(0.96 0.007 258);
+  --sidebar-primary: oklch(0.64 0.19 251);
+  --sidebar-primary-foreground: oklch(0.15 0.02 258);
+  --sidebar-accent: oklch(0.28 0.02 258);
+  --sidebar-accent-foreground: oklch(0.96 0.007 258);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.68 0.18 235 / 50%);
+  --sidebar-ring: oklch(0.64 0.19 251 / 50%);
 }
 
 @layer base {
@@ -244,6 +244,39 @@
 
 .animate-badge-pulse-glow {
   animation: badge-pulse-glow 2s ease-out infinite;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Floating contact widget — attention-grabbing wiggle on the FAB icon     */
+/* ---------------------------------------------------------------------- */
+
+@keyframes contact-wiggle {
+
+  0%,
+  85%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  88% {
+    transform: rotate(-12deg);
+  }
+
+  91% {
+    transform: rotate(10deg);
+  }
+
+  94% {
+    transform: rotate(-6deg);
+  }
+
+  97% {
+    transform: rotate(4deg);
+  }
+}
+
+.animate-contact-wiggle {
+  animation: contact-wiggle 2.5s ease-in-out infinite;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -482,4 +515,24 @@
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero banner slider — text reveal on slide change                       */
+/* ---------------------------------------------------------------------- */
+
+@keyframes hero-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-slide-in {
+  animation: hero-slide-in 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

@@ -10,6 +10,7 @@ import {
   FolderTree,
   Tags,
   Dumbbell,
+  Mail,
 } from "lucide-react";
 
 import {
@@ -30,6 +31,7 @@ const items = [
   { title: "Sản phẩm", url: "/products", icon: Package },
   { title: "Danh mục", url: "/categories", icon: FolderTree },
   { title: "Thương hiệu", url: "/brands", icon: Tags },
+  { title: "Liên hệ", url: "/contacts", icon: Mail },
   { title: "Khách hàng", url: "/users", icon: Users },
   { title: "Cài đặt", url: "/settings", icon: Settings },
 ];
