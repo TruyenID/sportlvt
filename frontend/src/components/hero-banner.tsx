@@ -80,9 +80,9 @@ export function HeroBanner() {
     return stop;
   }, [start, stop]);
 
-  useEffect(() => {
-    if (index >= slides.length) setIndex(0);
-  }, [slides.length, index]);
+  // Nếu slides thay đổi (ví dụ tải từ API) và index hiện tại vượt quá số
+  // lượng slide mới, dùng index an toàn thay vì setState trong effect.
+  const safeIndex = index < slides.length ? index : 0;
 
   function goTo(next: number) {
     setIndex((next + slides.length) % slides.length);
@@ -112,7 +112,7 @@ export function HeroBanner() {
     }
   }
 
-  const slide = slides[index] ?? slides[0];
+  const slide = slides[safeIndex] ?? slides[0];
   if (!slide) return null;
 
   return (
@@ -133,9 +133,9 @@ export function HeroBanner() {
         {slides.map((s, i) => (
           <div
             key={s.id}
-            aria-hidden={i !== index}
+            aria-hidden={i !== safeIndex}
             className="absolute inset-0 transition-opacity duration-[1200ms] ease-out"
-            style={{ opacity: i === index ? 1 : 0 }}
+            style={{ opacity: i === safeIndex ? 1 : 0 }}
           >
             <Image
               src={s.image}
@@ -195,7 +195,7 @@ export function HeroBanner() {
                 type="button"
                 aria-label={`Đi tới slide ${i + 1}`}
                 onClick={() => goTo(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? "w-6 bg-foreground" : "w-1.5 bg-foreground/30 hover:bg-foreground/60"
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === safeIndex ? "w-6 bg-foreground" : "w-1.5 bg-foreground/30 hover:bg-foreground/60"
                   }`}
               />
             ))}

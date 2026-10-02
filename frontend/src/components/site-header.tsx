@@ -30,29 +30,28 @@ export function SiteHeader() {
     router.push(`/products${search ? `?search=${encodeURIComponent(search)}` : ""}`);
   }
 
-  // Close the mobile menu automatically whenever the header hides (e.g. the
-  // user scrolls into the pinned banner section), so it never stays open
-  // off-screen.
-  useEffect(() => {
-    if (hidden) setMenuOpen(false);
-  }, [hidden]);
-
   useEffect(() => {
     let rafId = 0;
+    // Hide the header only while the pinned full-height banner slider
+    // section is actively covering the viewport, and bring it back right
+    // after that section is scrolled past. Whenever the header hides, also
+    // close the mobile menu so it never stays open off-screen.
+    function applyHidden(next: boolean) {
+      setHidden(next);
+      if (next) setMenuOpen(false);
+    }
+
     function onScroll() {
       if (rafId) return;
       rafId = requestAnimationFrame(() => {
         rafId = 0;
-        // Hide the header only while the pinned full-height banner slider
-        // section is actively covering the viewport, and bring it back
-        // right after that section is scrolled past.
         const section = document.getElementById("banner-slider");
         if (!section) {
-          setHidden(false);
+          applyHidden(false);
           return;
         }
         const rect = section.getBoundingClientRect();
-        setHidden(rect.top <= 0 && rect.bottom > 0);
+        applyHidden(rect.top <= 0 && rect.bottom > 0);
       });
     }
 
